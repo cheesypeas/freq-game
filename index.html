@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freq - Daily Audio Production Puzzle</title>
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Daily audio production puzzle game. Listen and guess the effect parameters!">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Freq</h1>
+            <p class="subtitle">Daily Audio Production Puzzle</p>
+        </header>
+
+        <main>
+            <div id="game-container">
+                <!-- Game state will be managed by JavaScript -->
+                <div id="loading" class="hidden">
+                    <p>Loading today's puzzle...</p>
+                </div>
+
+                <div id="game" class="hidden">
+                    <div id="puzzle-info">
+                        <h2>Today's Challenge</h2>
+                        <p id="effect-description"></p>
+                    </div>
+
+                    <div id="audio-section">
+                        <div id="dry-sample">
+                            <h3>Original Sample</h3>
+                            <audio id="dry-audio" controls></audio>
+                        </div>
+
+                        <div id="effected-sample">
+                            <h3>Effected Version</h3>
+                            <audio id="effected-audio" controls></audio>
+                        </div>
+                    </div>
+
+                    <div id="guess-section">
+                        <h3>Make Your Guess</h3>
+                        <div id="parameter-input">
+                            <label for="parameter-slider" id="parameter-label"></label>
+                            <input type="range" id="parameter-slider" min="0" max="100" step="1">
+                            <span id="parameter-value"></span>
+                            <span id="parameter-unit"></span>
+                        </div>
+                        <button id="submit-guess" disabled>Submit Guess</button>
+                    </div>
+
+                    <div id="results" class="hidden">
+                        <h3>Results</h3>
+                        <div id="score-display"></div>
+                        <div id="correct-answer"></div>
+                        <div id="explanation"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Freq - Daily Audio Production Puzzle Game</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript files -->
+    <script src="js/puzzles.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

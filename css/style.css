@@ -1,0 +1,248 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+}
+
+/* Main content */
+main {
+    flex: 1;
+    padding: 2rem 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+#game-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* Game sections */
+#puzzle-info {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+#puzzle-info h2 {
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+#effect-description {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Audio section */
+#audio-section {
+    margin-bottom: 2rem;
+}
+
+#dry-sample, #effected-sample {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+#dry-sample h3, #effected-sample h3 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+audio {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Guess section */
+#guess-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+#parameter-input {
+    margin-bottom: 1rem;
+}
+
+#parameter-label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+#parameter-slider {
+    width: 100%;
+    max-width: 400px;
+    height: 8px;
+    border-radius: 4px;
+    background: #ddd;
+    outline: none;
+    margin: 0 1rem;
+}
+
+#parameter-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+#parameter-value {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+#parameter-unit {
+    color: #666;
+    margin-left: 0.25rem;
+}
+
+#submit-guess {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+#submit-guess:hover:not(:disabled) {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+#submit-guess:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Results section */
+#results {
+    text-align: center;
+    padding: 1.5rem;
+    background: #e8f5e8;
+    border-radius: 10px;
+    border-left: 4px solid #28a745;
+}
+
+#score-display {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+#correct-answer {
+    font-size: 1.2rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+#explanation {
+    color: #666;
+    font-style: italic;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2.5rem;
+    }
+    
+    main {
+        padding: 1rem;
+    }
+    
+    #game-container {
+        padding: 1.5rem;
+    }
+    
+    #parameter-slider {
+        max-width: 100%;
+        margin: 0;
+    }
+}
+
+/* Loading animation */
+#loading {
+    text-align: center;
+    padding: 3rem;
+}
+
+#loading p {
+    color: #667eea;
+    font-size: 1.2rem;
+}

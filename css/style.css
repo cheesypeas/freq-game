@@ -74,6 +74,19 @@ main {
 #effect-description {
     color: #666;
     font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* Lives counter */
+.lives-counter {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    display: inline-block;
+    font-weight: 600;
+    color: #856404;
+    font-size: 0.9rem;
 }
 
 /* Audio section */
@@ -87,6 +100,7 @@ main {
     background: #f8f9fa;
     border-radius: 10px;
     border-left: 4px solid #667eea;
+    text-align: center;
 }
 
 #dry-sample h3, #effected-sample h3 {
@@ -94,9 +108,36 @@ main {
     margin-bottom: 0.5rem;
 }
 
-audio {
-    width: 100%;
-    border-radius: 8px;
+.audio-button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    margin-bottom: 0.5rem;
+    min-width: 200px;
+}
+
+.audio-button:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.audio-button:active {
+    transform: translateY(0);
+}
+
+.audio-tip {
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0;
 }
 
 /* Guess section */
@@ -109,14 +150,20 @@ audio {
 }
 
 #parameter-input {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 #parameter-label {
     display: block;
     font-weight: 600;
     color: #495057;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.slider-container {
+    position: relative;
+    margin: 1rem 0;
 }
 
 #parameter-slider {
@@ -126,32 +173,97 @@ audio {
     border-radius: 4px;
     background: #ddd;
     outline: none;
-    margin: 0 1rem;
+    margin: 0;
+    cursor: pointer;
 }
 
 #parameter-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #667eea;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+#parameter-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.parameter-display {
+    margin-top: 1rem;
 }
 
 #parameter-value {
     font-weight: 600;
     color: #667eea;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
 }
 
 #parameter-unit {
     color: #666;
     margin-left: 0.25rem;
+    font-size: 1.1rem;
 }
 
-#submit-guess {
-    background: #667eea;
+/* Audition section */
+.audition-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #fff3cd;
+    border-radius: 10px;
+    border: 1px solid #ffeaa7;
+}
+
+.audition-button {
+    background: #ffc107;
+    color: #212529;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    margin-bottom: 0.5rem;
+    min-width: 250px;
+}
+
+.audition-button:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.audition-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.audition-tip {
+    color: #856404;
+    font-size: 0.9rem;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Submit button */
+.submit-button {
+    background: #28a745;
     color: white;
     border: none;
     padding: 0.75rem 2rem;
@@ -160,16 +272,17 @@ audio {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    min-width: 200px;
 }
 
-#submit-guess:hover:not(:disabled) {
-    background: #5a6fd8;
+.submit-button:hover:not(:disabled) {
+    background: #218838;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
-#submit-guess:disabled {
+.submit-button:disabled {
     background: #ccc;
     cursor: not-allowed;
     box-shadow: none;
@@ -184,22 +297,37 @@ audio {
     border-left: 4px solid #28a745;
 }
 
-#score-display {
+.score-display {
     font-size: 2rem;
     font-weight: 700;
     color: #28a745;
     margin-bottom: 1rem;
 }
 
-#correct-answer {
+.correct-answer {
     font-size: 1.2rem;
     color: #495057;
     margin-bottom: 0.5rem;
 }
 
-#explanation {
+.explanation {
     color: #666;
     font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.lives-summary {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+}
+
+.lives-summary p {
+    color: #856404;
+    margin: 0;
+    font-weight: 600;
 }
 
 /* Footer */
@@ -234,6 +362,17 @@ footer {
         max-width: 100%;
         margin: 0;
     }
+    
+    .audio-button,
+    .audition-button,
+    .submit-button {
+        min-width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .audition-section {
+        padding: 0.75rem;
+    }
 }
 
 /* Loading animation */
@@ -245,4 +384,101 @@ footer {
 #loading p {
     color: #667eea;
     font-size: 1.2rem;
+}
+
+/* Error message styling */
+.error-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+    z-index: 1000;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.error-message button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.error-message button:hover {
+    background: #c82333;
+}
+
+/* Autoplay message styling */
+.autoplay-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    text-align: center;
+    max-width: 400px;
+}
+
+.autoplay-message h3 {
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.autoplay-message p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.autoplay-message button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.autoplay-message button:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+/* Audio initialization message */
+.audio-init-message {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.audio-init-message h3 {
+    color: #1976d2;
+    margin-bottom: 10px;
+}
+
+.audio-init-message p {
+    color: #424242;
+    margin: 5px 0;
+    font-size: 0.95rem;
+}
+
+.audio-init-message em {
+    color: #666;
+    font-size: 0.9rem;
 }

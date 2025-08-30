@@ -2,14 +2,32 @@
 
 A daily puzzle game where users listen to audio samples and guess the parameters of audio effects applied to them. Similar to Wordle/Heardle, each day presents the same puzzle to all users worldwide.
 
-## 🎯 Game Concept
+## 🎵 New Real-Time Audio System
 
-Each day, players are presented with:
-- **Dry Sample**: A clean recording (strings, drums, vocals, etc.)
-- **Effected Version**: The same sample with an audio effect applied
-- **Challenge**: Guess the specific parameter value of the effect
+**Freq now uses Web Audio API for real-time audio generation instead of pre-prepared audio files!**
 
-## 🎵 Effect Types
+### Key Features
+- **Real-time Effects**: Audio effects are generated in real-time using Web Audio API
+- **Interactive Guessing**: Users can audition different parameter values as they guess
+- **Lives System**: Limited attempts to audition parameters (3-5 lives per day)
+- **Educational**: Users learn by hearing parameter changes in real-time
+- **No Pre-processing**: Eliminates need for DAW/audio software
+
+### How It Works
+1. **Dry Sample**: Only the original audio file is loaded
+2. **Real-time Processing**: Web Audio API applies effects in real-time
+3. **Parameter Auditioning**: Users can hear their current guess (costs 1 life)
+4. **Immediate Feedback**: No waiting for audio to load or process
+
+## 🎮 Game Mechanics
+
+- **Daily Puzzle**: Same puzzle for all users globally
+- **Audio Sample**: One dry recording (strings, drums, vocals, etc.)
+- **Single Parameter**: One effect parameter to guess per day
+- **Scoring**: 0-100 points based on accuracy
+- **Lives System**: Strategic use of lives for parameter auditioning
+
+## 🎛️ Supported Effects
 
 - **EQ**: Frequency (20Hz-20kHz)
 - **Reverb**: Wet/dry mix (0-100%)
@@ -25,126 +43,138 @@ Each day, players are presented with:
 
 ### Prerequisites
 - Modern web browser with Web Audio API support
-- No additional software required
+- Chrome 66+, Firefox 60+, Safari 11+, Edge 79+
 
-### Local Development
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/freq-game.git
-   cd freq-game
-   ```
+### Installation
+1. Clone the repository
+2. Open `index.html` in a web browser
+3. Allow audio playback when prompted
+4. Start playing!
 
-2. Open `index.html` in your browser
-   - Or serve locally with a simple HTTP server:
-   ```bash
-   python -m http.server 8000
-   # Then visit http://localhost:8000
-   ```
+### Development Setup
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/freq-game.git
+cd freq-game
 
-## 🏗️ Project Structure
+# Open in your preferred code editor
+code .
 
+# Serve locally (optional)
+python -m http.server 8000
+# or
+npx serve .
+```
+
+## 🏗️ Architecture
+
+### File Structure
 ```
 freq-game/
 ├── index.html          # Main game interface
 ├── css/
-│   └── style.css      # Styling and responsive design
+│   └── style.css      # Styling
 ├── js/
-│   ├── game.js        # Core game logic and state management
-│   ├── audio.js       # Audio handling and Web Audio API integration
-│   └── puzzles.js     # Puzzle data system and effect definitions
-├── audio/              # Audio files (to be added)
-├── puzzles.json        # Puzzle data (to be added)
+│   ├── game.js        # Core game logic
+│   ├── audio.js       # Web Audio API & real-time effects
+│   ├── effects.js     # Audio effect implementations
+│   └── puzzles.js     # Puzzle data & logic
+├── audio/
+│   └── samples/       # Dry audio samples only
 └── README.md
 ```
 
-## 🧩 Architecture
-
 ### Core Components
+- **`game.js`**: Game state, user interactions, scoring, lives system
+- **`audio.js`**: Web Audio API integration, real-time effects, parameter auditioning
+- **`effects.js`**: Individual effect implementations using Web Audio API nodes
+- **`puzzles.js`**: Puzzle data, effect metadata, parameter validation
 
-1. **Puzzle System** (`puzzles.js`)
-   - Daily puzzle selection based on date
-   - Effect metadata and parameter ranges
-   - Value conversion utilities
+## 🎯 How to Play
 
-2. **Audio Manager** (`audio.js`)
-   - Audio file loading and caching
-   - Playback controls
-   - Web Audio API integration
-
-3. **Game Logic** (`game.js`)
-   - Game state management
-   - User interaction handling
-   - Scoring algorithm
-   - Local storage for progress
-
-### Data Flow
-1. Game loads today's puzzle based on current date
-2. Audio files are preloaded from CDN
-3. User listens to samples and makes a guess
-4. Score is calculated and results displayed
-5. Progress is saved to local storage
-
-## 🎮 How to Play
-
-1. **Listen to the dry sample** to understand the original sound
-2. **Listen to the effected version** to hear the audio effect
-3. **Use the slider** to guess the parameter value
-4. **Submit your guess** to see your score
-5. **Compare your answer** with the correct value
-6. **Track your progress** and build your streak
-
-## 📱 Features
-
-- **Responsive Design**: Works on desktop and mobile
-- **Audio Caching**: Fast playback after initial load
-- **Progress Tracking**: Local storage for scores and streaks
-- **Accessibility**: Keyboard navigation and screen reader support
-- **Modern UI**: Clean, intuitive interface
+1. **Listen to Dry Sample**: Hear the original audio
+2. **Adjust Parameter**: Use the slider to set your guess
+3. **Audition (Optional)**: Click "Audition" to hear your setting (costs 1 life)
+4. **Submit Guess**: When confident, submit your final answer
+5. **See Results**: Get your score and the correct answer
 
 ## 🔧 Technical Details
 
-### Browser Support
-- Chrome 66+
-- Firefox 60+
-- Safari 11+
-- Edge 79+
+### Web Audio API Implementation
+- **Audio Context**: Single context for all audio processing
+- **Effect Chain**: Series of Web Audio API nodes for effects
+- **Real-time Updates**: Parameter changes applied immediately via AudioParam
+- **Buffer Management**: Dry samples loaded as AudioBuffer for processing
 
-### Audio Requirements
-- MP3 format for compatibility
-- 5-10 second sample length
-- Consistent volume levels
-- High-quality source material
+### Effect Implementation
+- **EQ**: BiquadFilterNode with frequency, Q, and gain controls
+- **Reverb**: ConvolverNode with impulse response + GainNode for wet/dry
+- **Compression**: DynamicsCompressorNode with threshold, ratio, attack, release
+- **Delay**: DelayNode with time and feedback controls
+- **Modulation Effects**: OscillatorNode + GainNode for LFO modulation
+- **Distortion**: WaveShaperNode with custom curve
+- **Filter**: BiquadFilterNode with type, frequency, and Q controls
 
-### Performance Targets
-- Audio loading < 2 seconds
-- Smooth playback on mobile
-- Responsive UI interactions
+### Performance Features
+- **Audio Loading**: < 1 second (dry samples only)
+- **Real-time Processing**: < 50ms latency
+- **Smooth Parameter Changes**: Immediate audio updates
+- **Memory Management**: Efficient cleanup of audio resources
 
-## 🚀 Deployment
+## 🌟 Benefits of New Approach
 
-### GitHub Pages (Recommended)
-1. Push code to GitHub repository
-2. Enable GitHub Pages in repository settings
-3. Set source to main branch
-4. Site will be available at `https://username.github.io/repo-name`
+### For Users
+- **Educational**: Learn by hearing parameter changes in real-time
+- **Engaging**: Strategic use of lives adds game element
+- **Immediate Feedback**: No waiting for audio to load
+- **Exploration**: Discover effect behaviors through experimentation
 
-### CDN Setup for Audio
-- Host audio files on AWS S3, Cloudflare R2, or similar
-- Update audio URLs in puzzle data
-- Ensure CORS is properly configured
+### For Developers
+- **Faster Iteration**: No audio file generation needed
+- **Easier Testing**: Parameter changes are immediate
+- **More Flexible**: Easy to adjust effect ranges
+- **Better Debugging**: Real-time parameter monitoring
+
+### For Deployment
+- **Smaller Footprint**: Only dry samples need storage
+- **Easier Content Management**: No effected audio files
+- **Faster Loading**: Smaller audio files to download
+- **Scalable**: Easy to add new effects and parameters
+
+## 📱 Browser Support
+
+- **Chrome 66+**: Full Web Audio API support
+- **Firefox 60+**: Full Web Audio API support
+- **Safari 11+**: Full Web Audio API support
+- **Edge 79+**: Full Web Audio API support
+- **Mobile**: iOS Safari, Chrome, Firefox
 
 ## 🎨 Customization
 
 ### Adding New Effects
-1. Add effect definition to `puzzles.js`
-2. Define parameter ranges and units
-3. Update effect descriptions
-4. Generate sample puzzles
+1. Implement effect in `effects.js`
+2. Add metadata to `puzzles.js`
+3. Update UI as needed
 
-### Modifying UI
-1. Edit `css/style.css` for styling changes
-2. Modify `index.html` for layout changes
-3. Update game logic in `js/game.js`
+### Modifying Parameters
+- Adjust ranges in `puzzles.js`
+- Update effect presets for consistent sound
+- Modify difficulty ratings and lives allocation
+
+### Styling
+- Customize CSS in `style.css`
+- Modify color scheme and layout
+- Add animations and transitions
+
+## 🚀 Future Enhancements
+
+- **User Accounts**: Leaderboards and progress tracking
+- **Social Features**: Share results and challenge friends
+- **Advanced Effects**: Effect combinations and chains
+- **Community Challenges**: User-created puzzles
+- **Mobile App**: Native mobile applications
+- **Effect Presets**: Professional audio engineer presets
+- **Export/Import**: Save and share effect settings
 
 ## 🤝 Contributing
 
@@ -154,43 +184,29 @@ freq-game/
 4. Test thoroughly
 5. Submit a pull request
 
+### Development Guidelines
+- Follow existing code style
+- Add comments for complex logic
+- Test in multiple browsers
+- Ensure Web Audio API compatibility
+
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🎯 Roadmap
+## 🙏 Acknowledgments
 
-### Phase 1: Core Functionality ✅
-- [x] Basic game mechanics
-- [x] Audio playback system
-- [x] Scoring algorithm
-- [x] Responsive UI
-
-### Phase 2: Polish & Features
-- [ ] Audio preloading optimization
-- [ ] Enhanced visual feedback
-- [ ] Sound visualization
-- [ ] Social sharing
-
-### Phase 3: Content & Deployment
-- [ ] Generate puzzle data
-- [ ] Prepare audio samples
-- [ ] CDN setup
-- [ ] Production deployment
-
-## 🐛 Known Issues
-
-- Audio autoplay restrictions in some browsers
-- Mobile Safari audio context limitations
-- Large audio file loading times
+- Web Audio API specification and browser implementations
+- Audio effect algorithms and DSP techniques
+- Game design inspiration from Wordle and Heardle
+- Audio production community for effect knowledge
 
 ## 📞 Support
 
-For questions or issues:
-1. Check the [Issues](https://github.com/yourusername/freq-game/issues) page
-2. Create a new issue with detailed description
-3. Include browser and device information
+- **Issues**: Report bugs on GitHub Issues
+- **Discussions**: Join the conversation on GitHub Discussions
+- **Wiki**: Check the project wiki for detailed documentation
 
 ---
 
-**Freq** - Making audio production fun, one puzzle at a time! 🎵
+**Freq** - Where audio production meets puzzle gaming! 🎵🧩

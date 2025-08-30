@@ -66,6 +66,33 @@ python -m http.server 8000
 npx serve .
 ```
 
+## 🐛 GitHub Issues Management
+
+Manage GitHub issues directly from your local machine using the included script:
+
+```bash
+# Quick issue creation (agent-friendly)
+./manage_github_issues.sh create-bug 'Audio bug' 'Audio stops' 'Click play' 'Audio plays' 'Audio stops'
+./manage_github_issues.sh create-feature 'New effect' 'Add reverb' 'User wants reverb' 'More variety'
+./manage_github_issues.sh create-audio 'Audio issue' 'No sound' 'sample.wav' 'Should play' 'Silent'
+./manage_github_issues.sh create-puzzle 'Puzzle bug' 'Wrong answer' 'Easy' '100Hz' 'Shows 200Hz'
+
+# Issue management
+./manage_github_issues.sh list --state open
+./manage_github_issues.sh view 123
+./manage_github_issues.sh assign 123 --user username
+./manage_github_issues.sh close 123 --reason 'completed'
+
+# Project overview
+./manage_github_issues.sh status
+./manage_github_issues.sh search 'audio playback'
+
+# Get help
+./manage_github_issues.sh help
+```
+
+Perfect for use with Cursor agent chats and local development workflow!
+
 ### Branch previews & mobile testing
 
 - Use PR Preview links (auto-generated) to test any branch on a real phone over HTTPS. Each pull request builds and deploys to a unique GitHub Pages preview URL.
@@ -219,3 +246,28 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **superfreq** - Where audio production meets puzzle gaming! 🎵🧩
+
+### 🌐 Deploying to GitHub Pages
+
+- **Prerequisites**
+  - A GitHub repository with this code on the `main` branch
+  - GitHub Actions enabled for the repository
+
+- **Enable Pages**
+  - Go to Settings → Pages
+  - Set "Build and deployment" → "Source" to "GitHub Actions"
+
+- **Workflow**
+  - A workflow is already included at `.github/workflows/pages.yml`
+  - On push to `main`, it uploads `index.html`, `css/`, `js/`, and `test-audio.html` to Pages
+  - It also adds `.nojekyll` so files are served as-is
+
+- **First Deploy**
+  - Push to `main`
+  - Check Actions tab for the "Deploy static site to GitHub Pages" run
+  - When complete, the Pages URL appears in the job summary and under Settings → Pages
+
+- **Custom Domain (Optional)**
+  - Add your domain in Settings → Pages → Custom domain
+  - Create a `CNAME` record at your DNS pointing to `<username>.github.io`
+  - If you want to pin the domain in the repo, create a `CNAME` file at the site root containing your domain (e.g., `example.com`)

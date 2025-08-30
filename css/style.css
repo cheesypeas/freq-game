@@ -6,7 +6,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     color: #333;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -92,15 +92,31 @@ main {
 /* Audio section */
 #audio-section {
     margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
 #dry-sample, #effected-sample {
     margin-bottom: 1.5rem;
     padding: 1rem;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 12px;
     border-left: 4px solid #667eea;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Panel chrome */
+.theme-dark #dry-sample::before,
+.theme-dark #effected-sample::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.35);
 }
 
 #dry-sample h3, #effected-sample h3 {
@@ -111,22 +127,22 @@ main {
 .audio-button {
     background: #667eea;
     color: white;
-    border: none;
+    border: 1px solid transparent;
     padding: 0.75rem 1.5rem;
-    border-radius: 25px;
+    border-radius: 10px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.28);
     margin-bottom: 0.5rem;
     min-width: 200px;
 }
 
 .audio-button:hover {
     background: #5a6fd8;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.38);
 }
 
 .audio-button:active {
@@ -146,7 +162,18 @@ main {
     margin-bottom: 2rem;
     padding: 1.5rem;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-dark #guess-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.35);
 }
 
 #parameter-input {
@@ -209,6 +236,7 @@ main {
     font-weight: 600;
     color: #667eea;
     font-size: 1.5rem;
+    font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 #parameter-unit {
@@ -229,14 +257,14 @@ main {
 .audition-button {
     background: #ffc107;
     color: #212529;
-    border: none;
+    border: 1px solid transparent;
     padding: 0.75rem 1.5rem;
-    border-radius: 25px;
+    border-radius: 10px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(255, 193, 7, 0.28);
     margin-bottom: 0.5rem;
     min-width: 250px;
 }
@@ -265,14 +293,14 @@ main {
 .submit-button {
     background: #28a745;
     color: white;
-    border: none;
+    border: 1px solid transparent;
     padding: 0.75rem 2rem;
-    border-radius: 25px;
+    border-radius: 10px;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(40, 167, 69, 0.28);
     min-width: 200px;
 }
 
@@ -375,6 +403,10 @@ a {
     #parameter-slider {
         max-width: 100%;
         margin: 0;
+    }
+
+    #audio-section {
+        grid-template-columns: 1fr;
     }
     
     .audio-button,
@@ -604,4 +636,244 @@ a {
 .audio-init-message em {
     color: #666;
     font-size: 0.9rem;
+}
+
+/* Dark Theme (VST-style) */
+.theme-dark {
+	/* Palette */
+	--bg-grad-1: #0b0e13;
+	--bg-grad-2: #131922;
+	--panel: #171a21;
+	--panel-alt: #1d2430;
+	--border: #2a2f3a;
+	--text: #e6edf3;
+	--muted: #9aa4b2;
+	--accent: #6ea8fe;
+	--accent-strong: #5aa0ff;
+	--success: #22c55e;
+	--warning: #ffb020;
+	--danger: #ef4444;
+	color-scheme: dark;
+	background: radial-gradient(1000px 600px at 20% -10%, rgba(110,168,254,0.12) 0%, transparent 60%),
+		radial-gradient(900px 500px at 110% 20%, rgba(34,197,94,0.10) 0%, transparent 60%),
+		linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+	color: var(--text);
+}
+
+.theme-dark header {
+	background: rgba(255, 255, 255, 0.04);
+	backdrop-filter: blur(10px);
+	border-bottom: 1px solid var(--border);
+}
+
+/* Ensure sufficient color contrast in dark theme */
+.theme-dark a,
+.theme-dark p,
+.theme-dark label,
+.theme-dark span,
+.theme-dark h1,
+.theme-dark h2,
+.theme-dark h3,
+.theme-dark h4 {
+	color: var(--text);
+}
+
+/* Increase touch targets on mobile */
+@media (max-width: 480px) {
+    .audio-button,
+    .audition-button,
+    .submit-button {
+        min-height: 48px;
+    }
+}
+
+.theme-dark header h1 {
+	color: var(--text);
+	text-shadow: 0 0 24px rgba(110, 168, 254, 0.25);
+}
+
+.theme-dark .subtitle {
+	color: rgba(230, 237, 243, 0.75);
+}
+
+.theme-dark #game-container {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.theme-dark #puzzle-info {
+	border-bottom: 1px solid var(--border);
+}
+
+.theme-dark #puzzle-info h2 {
+	color: var(--accent);
+}
+
+.theme-dark #effect-description {
+	color: var(--muted);
+}
+
+.theme-dark .lives-counter {
+	background: #2b2210;
+	border: 1px solid #403012;
+	color: #ffd58a;
+}
+
+.theme-dark #audio-section { }
+
+.theme-dark #dry-sample, 
+.theme-dark #effected-sample {
+	background: var(--panel-alt);
+	border-left: 4px solid var(--accent);
+}
+
+.theme-dark #dry-sample h3, 
+.theme-dark #effected-sample h3 {
+	color: var(--text);
+}
+
+.theme-dark .audio-tip {
+	color: var(--muted);
+}
+
+.theme-dark .audio-button {
+	background: var(--accent);
+	box-shadow: 0 4px 18px rgba(110, 168, 254, 0.35);
+}
+
+.theme-dark .audio-button:hover {
+	background: var(--accent-strong);
+	box-shadow: 0 6px 24px rgba(110, 168, 254, 0.45);
+}
+
+.theme-dark #guess-section {
+	background: var(--panel-alt);
+}
+
+.theme-dark #parameter-label {
+	color: var(--text);
+}
+
+.theme-dark #parameter-slider {
+	background: #2a3140;
+}
+
+.theme-dark #parameter-slider::-webkit-slider-thumb {
+	background: var(--accent);
+}
+
+.theme-dark .slider-labels {
+	color: var(--muted);
+}
+
+.theme-dark #parameter-value {
+	color: var(--accent);
+}
+
+.theme-dark #parameter-unit {
+	color: var(--muted);
+}
+
+.theme-dark .audition-section {
+	background: #2b2210;
+	border: 1px solid #403012;
+}
+
+.theme-dark .audition-button {
+	background: var(--warning);
+	color: #1c1c1c;
+	box-shadow: 0 4px 18px rgba(255, 176, 32, 0.25);
+}
+
+.theme-dark .audition-button:hover {
+	background: #eaa10e;
+}
+
+.theme-dark .audition-tip {
+	color: #ffd58a;
+}
+
+.theme-dark .submit-button {
+	background: var(--success);
+	box-shadow: 0 4px 18px rgba(34, 197, 94, 0.28);
+}
+
+.theme-dark .submit-button:hover:not(:disabled) {
+	background: #1fab53;
+	box-shadow: 0 6px 24px rgba(34, 197, 94, 0.36);
+}
+
+.theme-dark .submit-button:disabled {
+	background: #3a3f46;
+	color: #888;
+}
+
+.theme-dark #results {
+	background: #0f1b12;
+	border-left-color: var(--success);
+}
+
+.theme-dark .score-display {
+	color: var(--success);
+}
+
+.theme-dark .correct-answer {
+	color: var(--text);
+}
+
+.theme-dark .explanation {
+	color: var(--muted);
+}
+
+.theme-dark .lives-summary {
+	background: #2b2210;
+	border-color: #403012;
+}
+
+.theme-dark .lives-summary p {
+	color: #ffd58a;
+}
+
+.theme-dark footer {
+	background: rgba(255, 255, 255, 0.04);
+	color: rgba(230, 237, 243, 0.75);
+}
+
+/* Dialogs & messages */
+.theme-dark .autoplay-message {
+	background: var(--panel);
+	color: var(--text);
+	border: 1px solid var(--border);
+}
+
+.theme-dark .autoplay-message h3 {
+	color: var(--accent);
+}
+
+.theme-dark .autoplay-message p {
+	color: var(--muted);
+}
+
+.theme-dark .autoplay-message button {
+	background: var(--success);
+}
+
+.theme-dark .error-message {
+	background: #2a1416;
+	color: #ffb4bd;
+	border-color: #4a1f24;
+}
+
+.theme-dark .error-message button {
+	background: var(--danger);
+}
+
+/* Focus visibility for accessibility */
+.theme-dark button:focus-visible,
+.theme-dark input[type="range"]:focus-visible,
+.theme-dark a:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	box-shadow: 0 0 0 3px rgba(110, 168, 254, 0.35);
 }

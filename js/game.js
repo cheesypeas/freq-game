@@ -1,6 +1,6 @@
 /**
  * Freq - Core Game Logic
- * Manages game state, user interactions, and scoring
+ * Manages game state, user interactions, and scoring with real-time audio
  */
 
 class FreqGame {
@@ -13,6 +13,9 @@ class FreqGame {
         this.userGuess = null;
         this.score = null;
         this.streak = 0;
+        this.remainingLives = 5;
+        this.audioInitialized = false; // Flag to track if audio is initialized
+        this.initializingAudio = false; // Flag to prevent multiple simultaneous initializations
         
         // DOM elements
         this.elements = {};
@@ -28,7 +31,7 @@ class FreqGame {
             this.setupDOMElements();
             this.setupEventListeners();
             
-            // Load today's puzzle
+            // Load today's puzzle (without audio)
             await this.loadTodaysPuzzle();
             
         } catch (error) {
@@ -52,6 +55,8 @@ class FreqGame {
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
             parameterUnit: document.getElementById('parameter-unit'),
+            auditionButton: document.getElementById('audition-button'),
+            livesDisplay: document.getElementById('lives-display'),
             submitGuess: document.getElementById('submit-guess'),
             results: document.getElementById('results'),
             scoreDisplay: document.getElementById('score-display'),
@@ -69,19 +74,77 @@ class FreqGame {
             this.handleParameterChange(e.target.value);
         });
 
+        // Audition button
+        if (this.elements.auditionButton) {
+            this.elements.auditionButton.addEventListener('click', async () => {
+                await this.initializeAudioIfNeeded();
+                this.auditionCurrentParameter();
+            });
+        }
+
         // Submit guess button
         this.elements.submitGuess.addEventListener('click', () => {
             this.submitGuess();
         });
 
-        // Audio controls
-        this.elements.dryAudio.addEventListener('play', () => {
-            this.audioManager.playAudio(this.elements.dryAudio);
-        });
+        // Audio controls - these will trigger audio initialization
+        if (this.elements.dryAudio) {
+            this.elements.dryAudio.addEventListener('click', async () => {
+                await this.initializeAudioIfNeeded();
+                this.playDrySample();
+            });
+        }
 
-        this.elements.effectedAudio.addEventListener('play', () => {
-            this.audioManager.playAudio(this.elements.effectedAudio);
-        });
+        if (this.elements.effectedAudio) {
+            this.elements.effectedAudio.addEventListener('click', async () => {
+                await this.initializeAudioIfNeeded();
+                this.playEffectedAudio();
+            });
+        }
+
+        // Add click handler to the game container to initialize audio
+        if (this.elements.game) {
+            this.elements.game.addEventListener('click', async () => {
+                await this.initializeAudioIfNeeded();
+            }, { once: true }); // Only trigger once
+        }
+    }
+
+    /**
+     * Initialize audio context and load puzzle audio if not already done
+     */
+    async initializeAudioIfNeeded() {
+        if (this.audioInitialized) {
+            return;
+        }
+
+        // Prevent multiple simultaneous initialization attempts
+        if (this.initializingAudio) {
+            console.log('Audio initialization already in progress, waiting...');
+            return;
+        }
+
+        this.initializingAudio = true;
+
+        try {
+            console.log('Initializing audio context and loading puzzle audio...');
+            
+            // Load puzzle audio with real-time effects
+            await this.audioManager.loadPuzzleAudio(this.currentPuzzle);
+            
+            // Update lives display
+            this.remainingLives = this.currentPuzzle.livesAllocated || 5;
+            this.updateLivesDisplay();
+            
+            this.audioInitialized = true;
+            console.log('Audio initialization completed successfully');
+            
+        } catch (error) {
+            console.error('Failed to initialize audio:', error);
+            this.showError('Failed to initialize audio. Please try clicking again.');
+        } finally {
+            this.initializingAudio = false;
+        }
     }
 
     /**
@@ -101,15 +164,36 @@ class FreqGame {
             // Set up the puzzle interface
             this.setupPuzzleInterface();
             
-            // Preload audio files
-            await this.audioManager.preloadAudioFiles(this.currentPuzzle);
-            
-            // Show the game
+            // Show the game interface (audio will be loaded on first user interaction)
             this.showGame();
+            
+            // Show a message about audio initialization
+            this.showAudioInitMessage();
             
         } catch (error) {
             console.error('Failed to load puzzle:', error);
             this.showError('Failed to load today\'s puzzle. Please try again later.');
+        }
+    }
+
+    /**
+     * Show message about audio initialization
+     */
+    showAudioInitMessage() {
+        const message = document.createElement('div');
+        message.className = 'audio-init-message';
+        message.innerHTML = `
+            <div style="text-align: center; padding: 20px; background: #e3f2fd; border-radius: 10px; margin: 20px 0;">
+                <h3>🎵 Audio Ready to Initialize</h3>
+                <p>Click anywhere on the game area or use the audio buttons below to enable audio playback.</p>
+                <p><em>This is required by your browser to prevent unwanted audio.</em></p>
+            </div>
+        `;
+        
+        // Insert after the puzzle info
+        const puzzleInfo = this.elements.puzzleInfo;
+        if (puzzleInfo && puzzleInfo.parentNode) {
+            puzzleInfo.parentNode.insertBefore(message, puzzleInfo.nextSibling);
         }
     }
 
@@ -127,17 +211,24 @@ class FreqGame {
         this.elements.parameterLabel.textContent = `Guess the ${effect.parameter} value:`;
         this.elements.parameterUnit.textContent = effect.unit;
         
-        // Set up slider
+        // Set up slider with proper range
+        const minValue = effect.minValue;
+        const maxValue = effect.maxValue;
         this.elements.parameterSlider.min = '0';
         this.elements.parameterSlider.max = '100';
         this.elements.parameterSlider.value = '50';
         
         // Set initial parameter value display
-        this.updateParameterDisplay(50);
+        const initialValue = this.puzzleSystem.sliderPositionToValue(effect.type, 50);
+        this.updateParameterDisplay(initialValue);
         
-        // Set up audio sources
-        this.elements.dryAudio.src = puzzle.drySample;
-        this.elements.effectedAudio.src = puzzle.effectedVersions[0]; // Start with first version
+        // Update audio button labels
+        if (this.elements.dryAudio) {
+            this.elements.dryAudio.textContent = '🎵 Play Dry Sample';
+        }
+        if (this.elements.effectedAudio) {
+            this.elements.effectedAudio.textContent = '🎛️ Play with Current Settings';
+        }
         
         // Enable submit button
         this.elements.submitGuess.disabled = false;
@@ -154,6 +245,9 @@ class FreqGame {
         
         this.userGuess = value;
         this.updateParameterDisplay(value);
+        
+        // Update the audio effect in real-time
+        this.audioManager.updateMainParameter(value);
     }
 
     /**
@@ -165,6 +259,77 @@ class FreqGame {
             this.currentPuzzle.unit
         );
         this.elements.parameterValue.textContent = formattedValue;
+    }
+
+    /**
+     * Audition the current parameter value (costs 1 life)
+     */
+    async auditionCurrentParameter() {
+        if (this.remainingLives <= 0) {
+            this.showError('No lives remaining for auditioning!');
+            return;
+        }
+
+        if (this.userGuess === null) {
+            this.showError('Please set a parameter value first.');
+            return;
+        }
+
+        try {
+            const parameterName = this.currentPuzzle.parameter;
+            const success = await this.audioManager.auditionParameter(parameterName, this.userGuess);
+            
+            if (success) {
+                this.remainingLives--;
+                this.updateLivesDisplay();
+                console.log(`Auditioned parameter: ${parameterName} = ${this.userGuess}`);
+            } else {
+                this.showError('Failed to audition parameter. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error during parameter audition:', error);
+            this.showError('Error during parameter audition. Please try again.');
+        }
+    }
+
+    /**
+     * Update lives display
+     */
+    updateLivesDisplay() {
+        if (this.elements.livesDisplay) {
+            const livesText = '❤️'.repeat(this.remainingLives);
+            this.elements.livesDisplay.textContent = `Lives: ${livesText} (${this.remainingLives})`;
+        }
+    }
+
+    /**
+     * Play dry sample
+     */
+    async playDrySample() {
+        try {
+            const success = await this.audioManager.playDrySample();
+            if (!success) {
+                this.showError('Failed to play dry sample. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error playing dry sample:', error);
+            this.showError('Error playing dry sample. Please try again.');
+        }
+    }
+
+    /**
+     * Play effected audio with current settings
+     */
+    async playEffectedAudio() {
+        try {
+            const success = await this.audioManager.playCurrentSettings();
+            if (!success) {
+                this.showError('Failed to play effected audio. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error playing effected audio:', error);
+            this.showError('Error playing effected audio. Please try again.');
+        }
     }
 
     /**
@@ -261,6 +426,14 @@ class FreqGame {
             explanation += "Keep practicing! Audio production takes time to master.";
         }
         
+        // Add lives usage info
+        const livesUsed = (puzzle.livesAllocated || 5) - this.remainingLives;
+        if (livesUsed > 0) {
+            explanation += ` You used ${livesUsed} lives to audition parameters.`;
+        } else {
+            explanation += " You didn't need to use any lives for auditioning - great job!";
+        }
+        
         return explanation;
     }
 
@@ -272,7 +445,8 @@ class FreqGame {
             lastPlayed: new Date().toISOString(),
             streak: this.streak,
             totalGames: this.getTotalGames() + 1,
-            averageScore: this.calculateAverageScore()
+            averageScore: this.calculateAverageScore(),
+            livesUsed: (this.currentPuzzle.livesAllocated || 5) - this.remainingLives
         };
         
         localStorage.setItem('freq-game-data', JSON.stringify(gameData));
@@ -359,6 +533,13 @@ class FreqGame {
             text-align: center;
         `;
         document.body.appendChild(errorDiv);
+    }
+
+    /**
+     * Get remaining lives
+     */
+    getRemainingLives() {
+        return this.remainingLives;
     }
 
     /**

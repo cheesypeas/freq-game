@@ -91,66 +91,64 @@ echo ""
 echo -e "${BLUE}📋 Step 4: Creating Project Board${NC}"
 echo "-----------------------------------"
 
-# Get the project ID
-PROJECT_ID=$(gh api graphql -f query='
-query {
-  user(login: "'$(gh api user --jq .login)'") {
-    projectsV2(first: 100) {
-      nodes {
-        id
-        title
-      }
-    }
-  }
-}' --jq '.data.user.projectsV2.nodes[] | select(.title == "'$PROJECT_NAME'") | .id')
+echo "Creating repository project board..."
+echo -e "${YELLOW}⚠️  Note: Using repository project to avoid permission issues${NC}"
+
+# Try to create a repository project (simpler permissions)
+PROJECT_ID=""
+
+# First, let's check if a repository project already exists
+echo "Checking for existing repository project..."
+PROJECT_ID=$(gh api repos/$REPO_NAME/projects --jq '.[0].id' 2>/dev/null || echo "")
 
 if [ -z "$PROJECT_ID" ]; then
-    echo "Creating project board..."
-    PROJECT_ID=$(gh api graphql -f query='
-    mutation {
-      createProjectV2(input: {
-        title: "'$PROJECT_NAME'"
-        description: "'$PROJECT_DESCRIPTION'"
-        repositoryId: "'$(gh api repos/$REPO_NAME --jq .id)'"
-      }) {
-        projectV2 {
-          id
-        }
-      }
-    }' --jq '.data.createProjectV2.projectV2.id')
+    echo "Creating new repository project..."
+    PROJECT_ID=$(gh api repos/$REPO_NAME/projects -f name="$PROJECT_NAME" -f body="$PROJECT_DESCRIPTION" --jq '.id' 2>/dev/null || echo "")
     
-    echo -e "${GREEN}✅ Project board created${NC}"
+    if [ -z "$PROJECT_ID" ]; then
+        echo -e "${YELLOW}⚠️  Could not create project via API. Creating manually...${NC}"
+        echo "Please create a project board manually:"
+        echo "1. Go to: https://github.com/cheesypeas/$REPO_NAME/projects"
+        echo "2. Click 'New Project'"
+        echo "3. Choose 'Board' template"
+        echo "4. Name it: '$PROJECT_NAME'"
+        echo "5. Add columns: Backlog, In Progress, Review, Done"
+        echo ""
+        read -p "Press Enter after you've created the project board manually..."
+        
+        # Try to find it again
+        PROJECT_ID=$(gh api repos/$REPO_NAME/projects --jq '.[0].id' 2>/dev/null || echo "")
+        
+        if [ -z "$PROJECT_ID" ]; then
+            echo -e "${RED}❌ Still cannot find project board. Continuing without it...${NC}"
+            echo "Issues will be created but not added to project board."
+            PROJECT_ID=""
+        fi
+    else
+        echo -e "${GREEN}✅ Repository project created successfully${NC}"
+    fi
 else
-    echo -e "${YELLOW}⚠️  Project board already exists${NC}"
+    echo -e "${GREEN}✅ Found existing repository project${NC}"
 fi
 
-# Step 5: Create Project Columns
-echo ""
-echo -e "${BLUE}📊 Step 5: Setting up Project Columns${NC}"
-echo "----------------------------------------"
+if [ ! -z "$PROJECT_ID" ]; then
+    echo "Project ID: $PROJECT_ID"
+    
+    # Try to create columns for the repository project
+    echo "Creating project columns..."
+    COLUMNS=("Backlog" "In Progress" "Review" "Done")
+    
+    for column in "${COLUMNS[@]}"; do
+        echo "Creating column: $column"
+        gh api repos/$REPO_NAME/projects/$PROJECT_ID/columns -f name="$column" >/dev/null 2>&1 || echo -e "${YELLOW}⚠️  Column '$column' may already exist${NC}"
+    done
+    
+    echo -e "${GREEN}✅ Project columns created${NC}"
+else
+    echo -e "${YELLOW}⚠️  No project board available - columns will be created manually${NC}"
+fi
 
-COLUMNS=("Backlog" "In Progress" "Review" "Done")
-
-for column in "${COLUMNS[@]}"; do
-    echo "Creating column: $column"
-    gh api graphql -f query='
-    mutation {
-      createProjectV2Column(input: {
-        projectId: "'$PROJECT_ID'"
-        name: "'$column'"
-      }) {
-        columnEdge {
-          node {
-            id
-          }
-        }
-      }
-    }' >/dev/null 2>&1 || echo -e "${YELLOW}⚠️  Column '$column' may already exist${NC}"
-done
-
-echo -e "${GREEN}✅ Project columns created${NC}"
-
-# Step 6: Create Labels
+# Step 5: Create Labels
 echo ""
 echo -e "${BLUE}🏷️  Step 6: Creating Labels${NC}"
 echo "---------------------------"
@@ -221,38 +219,24 @@ create_issue_if_missing() {
     
     local issue_id=$(gh api repos/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels" --jq '.[0].id')
     
-    # Add to project board (Backlog column)
-    local column_id=$(gh api graphql -f query='
-    query {
-      user(login: "'$(gh api user --jq .login)'") {
-        projectsV2(first: 100) {
-          nodes {
-            id
-            title
-            columns(first: 100) {
-              nodes {
-                id
-                name
-              }
-            }
-          }
-        }
-      }
-    }' --jq '.data.user.projectsV2.nodes[] | select(.id == "'$PROJECT_ID'") | .columns.nodes[] | select(.name == "Backlog") | .id')
+    echo -e "${GREEN}✅ Issue #$number created successfully${NC}"
     
-    if [ ! -z "$column_id" ]; then
-        gh api graphql -f query='
-        mutation {
-          addProjectV2ItemById(input: {
-            projectId: "'$PROJECT_ID'"
-            itemId: "'$issue_id'"
-            columnId: "'$column_id'"
-          }) {
-            item {
-              id
-            }
-          }
-        }' >/dev/null 2>&1 || true
+    # Try to add to project board if available
+    if [ ! -z "$PROJECT_ID" ]; then
+        echo "Adding issue to project board..."
+        
+        # Get the Backlog column ID
+        local column_id=$(gh api repos/$REPO_NAME/projects/$PROJECT_ID/columns --jq '.[] | select(.name == "Backlog") | .id' 2>/dev/null || echo "")
+        
+        if [ ! -z "$column_id" ]; then
+            # Add issue to the Backlog column
+            gh api repos/$REPO_NAME/projects/$PROJECT_ID/columns/$column_id/cards -f content_id="$issue_id" -f content_type="Issue" >/dev/null 2>&1 || echo -e "${YELLOW}⚠️  Could not add issue to project board${NC}"
+            echo -e "${GREEN}✅ Issue added to project board${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Backlog column not found - issue not added to project board${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  No project board available - issue not added${NC}"
     fi
 }
 

@@ -616,28 +616,6 @@ a {
     transform: translateY(-2px);
 }
 
-/* Audio initialization message */
-.audio-init-message {
-    margin: 20px 0;
-    text-align: center;
-}
-
-.audio-init-message h3 {
-    color: #1976d2;
-    margin-bottom: 10px;
-}
-
-.audio-init-message p {
-    color: #424242;
-    margin: 5px 0;
-    font-size: 0.95rem;
-}
-
-.audio-init-message em {
-    color: #666;
-    font-size: 0.9rem;
-}
-
 /* Dark Theme (VST-style) */
 .theme-dark {
 	/* Palette */

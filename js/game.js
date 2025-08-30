@@ -102,12 +102,9 @@ class SuperfreqGame {
             });
         }
 
-        // Add click handler to the game container to initialize audio
-        if (this.elements.game) {
-            this.elements.game.addEventListener('click', async () => {
-                await this.initializeAudioIfNeeded();
-            }, { once: true }); // Only trigger once
-        }
+        // Removed global click-to-initialize to avoid autoplay prompts
+        // (Previously added click handler on game container)
+        
     }
 
     /**
@@ -167,8 +164,7 @@ class SuperfreqGame {
             // Show the game interface (audio will be loaded on first user interaction)
             this.showGame();
             
-            // Show a message about audio initialization
-            this.showAudioInitMessage();
+            // Removed audio initialization message (no autoplay prompt)
             
         } catch (error) {
             console.error('Failed to load puzzle:', error);
@@ -179,23 +175,7 @@ class SuperfreqGame {
     /**
      * Show message about audio initialization
      */
-    showAudioInitMessage() {
-        const message = document.createElement('div');
-        message.className = 'audio-init-message';
-        message.innerHTML = `
-            <div style="text-align: center; padding: 20px; background: #e3f2fd; border-radius: 10px; margin: 20px 0;">
-                <h3>🎵 Audio Ready to Initialize</h3>
-                <p>Click anywhere on the game area or use the audio buttons below to enable audio playback.</p>
-                <p><em>This is required by your browser to prevent unwanted audio.</em></p>
-            </div>
-        `;
-        
-        // Insert after the puzzle info
-        const puzzleInfo = this.elements.puzzleInfo;
-        if (puzzleInfo && puzzleInfo.parentNode) {
-            puzzleInfo.parentNode.insertBefore(message, puzzleInfo.nextSibling);
-        }
-    }
+    // Removed showAudioInitMessage: no longer needed
 
     /**
      * Set up the puzzle interface

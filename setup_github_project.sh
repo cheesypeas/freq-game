@@ -133,6 +133,9 @@ echo ""
 echo -e "${BLUE}🏷️  Step 6: Creating Labels${NC}"
 echo "---------------------------"
 
+echo "Debug: REPO_NAME = '$REPO_NAME'"
+echo "Debug: Current working directory = $(pwd)"
+
 # Function to create label if it doesn't exist
 create_label_if_missing() {
     local name="$1"
@@ -140,6 +143,7 @@ create_label_if_missing() {
     local color="$3"
     
     echo "Checking label: $name"
+    echo "Debug: Using REPO_NAME = '$REPO_NAME'"
     
     # Check if label exists by counting results
     local existing_count=$(gh api repos/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\") | .name" 2>/dev/null | wc -l)
@@ -148,6 +152,7 @@ create_label_if_missing() {
         echo -e "${YELLOW}⚠️  Label '$name' already exists${NC}"
     else
         echo "Creating label: $name"
+        # Use the correct GitHub CLI syntax for creating labels
         local response=$(gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" 2>&1)
         
         if echo "$response" | grep -q '"id"'; then
@@ -232,7 +237,7 @@ create_issue_if_missing() {
     # Convert comma-separated labels to array format
     local labels_array=$(echo "$labels" | tr ',' '\n' | tr -d ' ' | jq -R . | jq -s .)
     
-    # Create issue with proper label array format
+    # Create issue with correct GitHub CLI syntax
     local response=$(gh api repos/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels_array" 2>&1)
     
     if echo "$response" | grep -q '"id"'; then

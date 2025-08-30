@@ -148,10 +148,14 @@ create_label_if_missing() {
         echo -e "${YELLOW}⚠️  Label '$name' already exists${NC}"
     else
         echo "Creating label: $name"
-        if gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" >/dev/null 2>&1; then
-            echo -e "${GREEN}✅ Label '$name' created successfully${NC}"
+        local response=$(gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" 2>&1)
+        
+        if echo "$response" | grep -q '"id"'; then
+            local label_id=$(echo "$response" | jq '.id')
+            echo -e "${GREEN}✅ Label '$name' created successfully (ID: $label_id)${NC}"
         else
             echo -e "${RED}❌ Failed to create label '$name'${NC}"
+            echo "Error: $response"
             echo "Continuing with next label..."
         fi
     fi
@@ -225,10 +229,21 @@ create_issue_if_missing() {
     
     echo "Creating issue #$number: $title"
     
-    local issue_id=$(gh api repos/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels" --jq '.[0].id')
+    # Convert comma-separated labels to array format
+    local labels_array=$(echo "$labels" | tr ',' '\n' | tr -d ' ' | jq -R . | jq -s .)
     
-    echo -e "${GREEN}✅ Issue #$number created successfully${NC}"
-    echo -e "${BLUE}Note: You can manually add this issue to your project board${NC}"
+    # Create issue with proper label array format
+    local response=$(gh api repos/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels_array" 2>&1)
+    
+    if echo "$response" | grep -q '"id"'; then
+        local issue_id=$(echo "$response" | jq '.id')
+        echo -e "${GREEN}✅ Issue #$number created successfully (ID: $issue_id)${NC}"
+        echo -e "${BLUE}Note: You can manually add this issue to your project board${NC}"
+    else
+        echo -e "${RED}❌ Failed to create issue #$number: $title${NC}"
+        echo "Error: $response"
+        echo "Continuing with next issue..."
+    fi
 }
 
 # Foundation & Setup Issues

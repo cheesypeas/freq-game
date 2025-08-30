@@ -139,36 +139,64 @@ create_label_if_missing() {
     local description="$2"
     local color="$3"
     
-    # Check if label exists
-    if ! gh api repos/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\")" >/dev/null 2>&1; then
-        echo "Creating label: $name"
-        gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" >/dev/null 2>&1
-    else
+    echo "Checking label: $name"
+    
+    # Check if label exists by counting results
+    local existing_count=$(gh api repos/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\") | .name" 2>/dev/null | wc -l)
+    
+    if [ "$existing_count" -gt 0 ]; then
         echo -e "${YELLOW}⚠️  Label '$name' already exists${NC}"
+    else
+        echo "Creating label: $name"
+        if gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" >/dev/null 2>&1; then
+            echo -e "${GREEN}✅ Label '$name' created successfully${NC}"
+        else
+            echo -e "${RED}❌ Failed to create label '$name'${NC}"
+            echo "Continuing with next label..."
+        fi
     fi
 }
 
 # Priority labels
+echo "Creating priority labels..."
 create_label_if_missing "priority: high" "Critical for MVP" "d73a4a"
+echo "After priority: high"
 create_label_if_missing "priority: medium" "Important for launch" "fbca04"
+echo "After priority: medium"
 create_label_if_missing "priority: low" "Nice to have" "0e8a16"
+echo "After priority: low"
 
 # Type labels
+echo "Creating type labels..."
 create_label_if_missing "type: feature" "New functionality" "1d76db"
+echo "After type: feature"
 create_label_if_missing "type: bug" "Bug fixes" "d73a4a"
+echo "After type: bug"
 create_label_if_missing "type: enhancement" "Improvements" "a2eeef"
+echo "After type: enhancement"
 create_label_if_missing "type: documentation" "Docs and guides" "0075ca"
+echo "After type: documentation"
 create_label_if_missing "type: design" "UI/UX improvements" "5319e7"
+echo "After type: design"
 create_label_if_missing "type: styling" "Visual and theme updates" "c2e0c6"
+echo "After type: styling"
 
 # Component labels
+echo "Creating component labels..."
 create_label_if_missing "component: core" "Game logic" "5319e7"
+echo "After component: core"
 create_label_if_missing "component: audio" "Audio system" "c2e0c6"
+echo "After component: audio"
 create_label_if_missing "component: ui" "User interface" "bfdadc"
+echo "After component: ui"
 create_label_if_missing "component: ux" "User experience" "fef2c0"
+echo "After component: ux"
 create_label_if_missing "component: design" "Visual design system" "d4c5f9"
+echo "After component: design"
 create_label_if_missing "component: data" "Puzzle data" "fef2c0"
+echo "After component: data"
 create_label_if_missing "component: infrastructure" "Hosting/deployment" "d4c5f9"
+echo "After component: infrastructure"
 
 echo -e "${GREEN}✅ Labels created${NC}"
 

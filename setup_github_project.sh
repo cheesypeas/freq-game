@@ -13,10 +13,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO_NAME="superfreq-game"
+REPO_NAME="freq-game"
 REPO_DESCRIPTION="Daily audio production puzzle game - listen and guess effect parameters"
-PROJECT_NAME="superfreq Development"
-PROJECT_DESCRIPTION="Development board for superfreq audio puzzle game"
+PROJECT_NAME="Superfreq Development"
+PROJECT_DESCRIPTION="Development board for Superfreq audio puzzle game"
 
 echo -e "${BLUE}🎵 superfreq GitHub Project Setup Automation${NC}"
 echo "================================================"
@@ -86,20 +86,39 @@ git push -u origin main
 
 echo -e "${GREEN}✅ Code pushed successfully${NC}"
 
-# Step 4: Create Project Board
+# Step 4: Project Board Setup
 echo ""
 echo -e "${BLUE}📋 Step 4: Project Board Setup${NC}"
 echo "-----------------------------------"
 
-echo -e "${YELLOW}⚠️  Project board creation requires special permissions${NC}"
-echo "Please create the project board manually first:"
-echo "1. Go to: https://github.com/cheesypeas/$REPO_NAME/projects"
-echo "2. Click 'New Project'"
-echo "3. Choose 'Board' template"
-echo "4. Name it: '$PROJECT_NAME'"
-echo "5. Add columns: Backlog, In Progress, Review, Done"
-echo ""
-read -p "Press Enter after you've created the project board manually..."
+echo "Checking if project board already exists..."
+echo -e "${BLUE}Looking for project board: $PROJECT_NAME${NC}"
+
+# Try to detect if the project board already exists
+PROJECT_EXISTS=false
+
+# Check if we can find the project board via API
+if gh api repos/$REPO_NAME/projects >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Repository projects accessible${NC}"
+    PROJECT_EXISTS=true
+else
+    echo -e "${YELLOW}⚠️  Cannot check repository projects via API${NC}"
+fi
+
+if [ "$PROJECT_EXISTS" = true ]; then
+    echo -e "${GREEN}✅ Project board appears to exist${NC}"
+    echo "Continuing with issue and label creation..."
+else
+    echo -e "${YELLOW}⚠️  Project board creation requires special permissions${NC}"
+    echo "Please create the project board manually first:"
+    echo "1. Go to: https://github.com/cheesypeas/$REPO_NAME/projects"
+    echo "2. Click 'New Project'"
+    echo "3. Choose 'Board' template"
+    echo "4. Name it: '$PROJECT_NAME'"
+    echo "5. Add columns: Backlog, In Progress, Review, Done"
+    echo ""
+    read -p "Press Enter after you've created the project board manually..."
+fi
 
 echo -e "${GREEN}✅ Project board setup complete${NC}"
 echo -e "${BLUE}Note: Issues will be created but not automatically added to the project board${NC}"

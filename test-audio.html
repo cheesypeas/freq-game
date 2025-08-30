@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freq - Audio Effects Test</title>
+    <title>superfreq - Audio Effects Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,61 +56,63 @@
     </style>
 </head>
 <body>
-    <h1>Freq - Audio Effects Test</h1>
+    <div class="container">
+        <h1>superfreq - Audio Effects Test</h1>
     
-    <div class="test-section">
-        <h2>Web Audio API Test</h2>
-        <button id="init-audio">Initialize Audio Context</button>
-        <button id="test-oscillator">Test Oscillator</button>
-        <div id="audio-status" class="status info">Click "Initialize Audio Context" to start</div>
-    </div>
+        <div class="test-section">
+            <h2>Web Audio API Test</h2>
+            <button id="init-audio">Initialize Audio Context</button>
+            <button id="test-oscillator">Test Oscillator</button>
+            <div id="audio-status" class="status info">Click "Initialize Audio Context" to start</div>
+        </div>
 
-    <div class="test-section">
-        <h2>Effects Engine Test</h2>
-        <button id="init-effects">Initialize Effects Engine</button>
-        <div id="effects-status" class="status info">Click "Initialize Effects Engine" to start</div>
-    </div>
+        <div class="test-section">
+            <h2>Effects Engine Test</h2>
+            <button id="init-effects">Initialize Effects Engine</button>
+            <div id="effects-status" class="status info">Click "Initialize Effects Engine" to start</div>
+        </div>
 
-    <div class="test-section">
-        <h2>Effect Tests</h2>
-        <div id="effect-tests" style="display: none;">
-            <div class="parameter-control">
-                <h3>EQ Test</h3>
-                <label>Frequency: <span id="eq-freq-value">1000</span> Hz</label><br>
-                <input type="range" id="eq-freq" min="20" max="20000" value="1000" step="1">
-                <button id="test-eq">Test EQ</button>
-            </div>
+        <div class="test-section">
+            <h2>Effect Tests</h2>
+            <div id="effect-tests" style="display: none;">
+                <div class="parameter-control">
+                    <h3>EQ Test</h3>
+                    <label>Frequency: <span id="eq-freq-value">1000</span> Hz</label><br>
+                    <input type="range" id="eq-freq" min="20" max="20000" value="1000" step="1">
+                    <button id="test-eq">Test EQ</button>
+                </div>
 
-            <div class="parameter-control">
-                <h3>Filter Test</h3>
-                <label>Cutoff: <span id="filter-freq-value">1000</span> Hz</label><br>
-                <input type="range" id="filter-freq" min="20" max="20000" value="1000" step="1">
-                <button id="test-filter">Test Filter</button>
-            </div>
+                <div class="parameter-control">
+                    <h3>Filter Test</h3>
+                    <label>Cutoff: <span id="filter-freq-value">1000</span> Hz</label><br>
+                    <input type="range" id="filter-freq" min="20" max="20000" value="1000" step="1">
+                    <button id="test-filter">Test Filter</button>
+                </div>
 
-            <div class="parameter-control">
-                <h3>Delay Test</h3>
-                <label>Time: <span id="delay-time-value">100</span> ms</label><br>
-                <input type="range" id="delay-time" min="10" max="1000" value="100" step="10">
-                <button id="test-delay">Test Delay</button>
-            </div>
+                <div class="parameter-control">
+                    <h3>Delay Test</h3>
+                    <label>Time: <span id="delay-time-value">100</span> ms</label><br>
+                    <input type="range" id="delay-time" min="10" max="1000" value="100" step="10">
+                    <button id="test-delay">Test Delay</button>
+                </div>
 
-            <div class="parameter-control">
-                <h3>Phaser Test</h3>
-                <label>Rate: <span id="phaser-rate-value">0.5</span> Hz</label><br>
-                <input type="range" id="phaser-rate" min="0.1" max="2.0" value="0.5" step="0.1">
-                <button id="test-phaser">Test Phaser</button>
+                <div class="parameter-control">
+                    <h3>Phaser Test</h3>
+                    <label>Rate: <span id="phaser-rate-value">0.5</span> Hz</label><br>
+                    <input type="range" id="phaser-rate" min="0.1" max="2.0" value="0.5" step="0.1">
+                    <button id="test-phaser">Test Phaser</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="test-section">
-        <h2>Audio File Test</h2>
-        <input type="file" id="audio-file" accept="audio/*">
-        <button id="load-audio">Load Audio File</button>
-        <button id="play-dry">Play Dry</button>
-        <button id="play-effected">Play with Effect</button>
-        <div id="file-status" class="status info">Select an audio file to test</div>
+        <div class="test-section">
+            <h2>Audio File Test</h2>
+            <input type="file" id="audio-file" accept="audio/*">
+            <button id="load-audio">Load Audio File</button>
+            <button id="play-dry">Play Dry</button>
+            <button id="play-effected">Play with Effect</button>
+            <div id="file-status" class="status info">Select an audio file to test</div>
+        </div>
     </div>
 
     <script src="js/effects.js"></script>

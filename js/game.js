@@ -1,9 +1,9 @@
 /**
- * Freq - Core Game Logic
+ * superfreq - Core Game Logic
  * Manages game state, user interactions, and scoring with real-time audio
  */
 
-class FreqGame {
+class SuperfreqGame {
     constructor() {
         this.puzzleSystem = new PuzzleSystem();
         this.audioManager = new AudioManager();
@@ -449,14 +449,14 @@ class FreqGame {
             livesUsed: (this.currentPuzzle.livesAllocated || 5) - this.remainingLives
         };
         
-        localStorage.setItem('freq-game-data', JSON.stringify(gameData));
+        localStorage.setItem('superfreq-game-data', JSON.stringify(gameData));
     }
 
     /**
      * Load game data from local storage
      */
     loadGameData() {
-        const data = localStorage.getItem('freq-game-data');
+        const data = localStorage.getItem('superfreq-game-data');
         if (data) {
             try {
                 const gameData = JSON.parse(data);
@@ -552,12 +552,12 @@ class FreqGame {
 
 // Initialize game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.freqGame = new FreqGame();
+    window.superfreqGame = new SuperfreqGame();
 });
 
 // Clean up on page unload
 window.addEventListener('beforeunload', () => {
-    if (window.freqGame) {
-        window.freqGame.cleanup();
+    if (window.superfreqGame) {
+        window.superfreqGame.cleanup();
     }
 });

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Freq GitHub Project Setup Automation Script
+# superfreq GitHub Project Setup Automation Script
 # This script automates the entire GitHub setup process
 
 set -e  # Exit on any error
@@ -13,12 +13,12 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO_NAME="freq-game"
+REPO_NAME="superfreq-game"
 REPO_DESCRIPTION="Daily audio production puzzle game - listen and guess effect parameters"
-PROJECT_NAME="Freq Development"
-PROJECT_DESCRIPTION="Development board for Freq audio puzzle game"
+PROJECT_NAME="superfreq Development"
+PROJECT_DESCRIPTION="Development board for superfreq audio puzzle game"
 
-echo -e "${BLUE}🎵 Freq GitHub Project Setup Automation${NC}"
+echo -e "${BLUE}🎵 superfreq GitHub Project Setup Automation${NC}"
 echo "================================================"
 
 # Check if gh is authenticated
@@ -186,7 +186,7 @@ create_issue_if_missing() {
 
 # Foundation & Setup Issues
 create_issue_if_missing 1 "Set up GitHub repository and project board" "## Feature Description
-Set up the complete GitHub infrastructure for the Freq project.
+Set up the complete GitHub infrastructure for the superfreq project.
 
 ## Acceptance Criteria
 - [ ] Repository created with proper description
@@ -210,7 +210,7 @@ Low
 This is the foundational setup issue." "priority: high,type: feature,component: infrastructure"
 
 create_issue_if_missing 2 "Configure GitHub Pages for hosting" "## Feature Description
-Set up GitHub Pages to host the Freq game for free.
+Set up GitHub Pages to host the superfreq game for free.
 
 ## Acceptance Criteria
 - [ ] GitHub Pages enabled in repository settings
@@ -499,4 +499,4 @@ echo ""
 echo -e "${BLUE}Your game will be available at:${NC}"
 echo "https://$(gh api user --jq .login).github.io/$REPO_NAME"
 echo ""
-echo -e "${GREEN}🚀 Ready to build Freq - The VST-Style Audio Puzzle Game! 🎵🎛️${NC}"
+echo -e "${GREEN}🚀 Ready to build superfreq - The VST-Style Audio Puzzle Game! 🎵🎛️${NC}"

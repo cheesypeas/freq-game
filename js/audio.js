@@ -1,6 +1,6 @@
 /**
- * Freq - Real-time Audio Management System
- * Handles Web Audio API integration, real-time effects, and parameter auditioning
+ * superfreq - Real-time Audio Management System
+ * Handles Web Audio API context, sample loading, and real-time effect processing
  */
 
 class AudioManager {

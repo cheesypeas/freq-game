@@ -1,10 +1,10 @@
-# Freq - Daily Audio Production Puzzle Game
+# superfreq - Daily Audio Production Puzzle Game
 
 A daily puzzle game where users listen to audio samples and guess the parameters of audio effects applied to them. Similar to Wordle/Heardle, each day presents the same puzzle to all users worldwide.
 
 ## 🎵 New Real-Time Audio System
 
-**Freq now uses Web Audio API for real-time audio generation instead of pre-prepared audio files!**
+**superfreq now uses Web Audio API for real-time audio generation instead of pre-prepared audio files!**
 
 ### Key Features
 - **Real-time Effects**: Audio effects are generated in real-time using Web Audio API
@@ -54,8 +54,8 @@ A daily puzzle game where users listen to audio samples and guess the parameters
 ### Development Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/freq-game.git
-cd freq-game
+git clone https://github.com/yourusername/superfreq-game.git
+cd superfreq-game
 
 # Open in your preferred code editor
 code .
@@ -70,7 +70,7 @@ npx serve .
 
 ### File Structure
 ```
-freq-game/
+superfreq-game/
 ├── index.html          # Main game interface
 ├── css/
 │   └── style.css      # Styling
@@ -209,4 +209,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Freq** - Where audio production meets puzzle gaming! 🎵🧩
+**superfreq** - Where audio production meets puzzle gaming! 🎵🧩

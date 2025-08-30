@@ -1,6 +1,6 @@
 /**
- * Freq - Puzzle Data System
- * Handles puzzle data structure, daily selection, and parameter validation
+ * superfreq - Puzzle Data System
+ * Manages daily puzzle selection, effect metadata, and parameter validation
  */
 
 class PuzzleSystem {

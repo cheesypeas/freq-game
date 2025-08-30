@@ -1,37 +1,25 @@
-# GitHub Project Setup Guide for Freq
+# GitHub Project Setup Guide for superfreq
 
 This document outlines how to set up the GitHub project board and create all the necessary issues for parallel development.
 
-## 🚀 Step 1: Create GitHub Repository
+## Quick Setup Steps
 
-1. Go to [GitHub](https://github.com) and create a new repository
-2. Name: `freq-game`
-3. Description: "Daily audio production puzzle game - listen and guess effect parameters"
-4. Make it public
-5. Don't initialize with README (we already have one)
+1. **Repository**: 
+   - Name: `superfreq-game`
+   - Description: "Daily audio production puzzle game - listen and guess effect parameters"
+   - Public repository
 
-## 🔗 Step 2: Connect Local Repository
+2. **Clone locally**:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/superfreq-game.git
+   cd superfreq-game
+   ```
 
-```bash
-git remote add origin https://github.com/YOUR_USERNAME/freq-game.git
-git push -u origin main
-```
-
-## 📋 Step 3: Create GitHub Project Board
-
-1. Go to your repository → **Projects** tab
-2. Click **New Project**
-3. Choose **Board** template
-4. Name: "Freq Development"
-5. Description: "Development board for Freq audio puzzle game"
-
-## 📊 Step 4: Create Project Columns
-
-Create these columns in order:
-1. **Backlog** - New issues and planned work
-2. **In Progress** - Currently being worked on
-3. **Review** - Ready for review/testing
-4. **Done** - Completed work
+3. **Project Board**:
+   - Name: "superfreq Development"
+   - Description: "Development board for superfreq audio puzzle game"
+   - Template: Board
+   - Columns: Backlog, In Progress, Review, Done
 
 ## 🎯 Step 5: Create Issues for Parallel Development
 
@@ -336,4 +324,4 @@ For questions about this setup:
 
 ---
 
-**Ready to build Freq - The VST-Style Audio Puzzle Game! 🎵🎛️**
+**Ready to build superfreq - The VST-Style Audio Puzzle Game! 🎵🎛️**

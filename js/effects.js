@@ -1,6 +1,6 @@
 /**
- * Freq - Audio Effects Engine
- * Real-time audio effect implementations using Web Audio API
+ * superfreq - Audio Effects Engine
+ * Implements individual audio effects using Web Audio API nodes
  */
 
 class AudioEffectsEngine {

@@ -1,7 +1,7 @@
-# Freq - Daily Audio Production Puzzle Game
+# superfreq - Daily Audio Production Puzzle Game
 
 ## Project Overview
-Freq is a daily puzzle game where users listen to audio samples and guess the parameters of audio effects applied to them. Similar to Wordle/Heardle, each day presents the same puzzle to all users worldwide.
+superfreq is a daily puzzle game where users listen to audio samples and guess the parameters of audio effects applied to them. Similar to Wordle/Heardle, each day presents the same puzzle to all users worldwide.
 
 ## Core Game Mechanics
 - **Daily Puzzle**: Same puzzle for all users globally
@@ -32,7 +32,7 @@ Freq is a daily puzzle game where users listen to audio samples and guess the pa
 
 ### File Structure
 ```
-freq-game/
+superfreq-game/
 ├── index.html          # Main game interface
 ├── css/
 │   └── style.css      # Styling

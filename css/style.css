@@ -344,6 +344,20 @@ footer {
     display: none !important;
 }
 
+/* Interactive ergonomics */
+button,
+input[type="range"],
+input[type="button"],
+input[type="submit"],
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve slider gesture handling on touch devices */
+#parameter-slider {
+    touch-action: pan-y;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     header h1 {
@@ -372,6 +386,115 @@ footer {
     
     .audition-section {
         padding: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 1.25rem 0.75rem;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    main {
+        padding: 0.75rem;
+    }
+
+    #game-container {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    #puzzle-info h2 {
+        font-size: 1.25rem;
+    }
+
+    #effect-description {
+        font-size: 1rem;
+    }
+
+    .lives-counter {
+        font-size: 0.85rem;
+    }
+
+    #dry-sample, #effected-sample {
+        padding: 0.75rem;
+    }
+
+    #dry-sample h3, #effected-sample h3 {
+        font-size: 1rem;
+    }
+
+    .audio-button,
+    .audition-button,
+    .submit-button {
+        min-width: 100%;
+        min-height: 48px;
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
+    }
+
+    #guess-section {
+        padding: 1rem;
+    }
+
+    #parameter-label {
+        font-size: 1rem;
+    }
+
+    #parameter-slider {
+        height: 10px;
+    }
+
+    #parameter-slider::-webkit-slider-thumb {
+        width: 28px;
+        height: 28px;
+    }
+
+    .slider-labels {
+        font-size: 0.8rem;
+    }
+
+    #parameter-value {
+        font-size: 1.3rem;
+    }
+
+    #parameter-unit {
+        font-size: 1rem;
+    }
+
+    .audio-tip,
+    .audition-tip {
+        font-size: 0.85rem;
+    }
+
+    /* Dialogs */
+    .autoplay-message {
+        max-width: 90vw;
+        width: calc(100vw - 2rem);
+        padding: 1.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+
+    .audio-button:hover,
+    .audition-button:hover,
+    .submit-button:hover,
+    .autoplay-message button:hover {
+        transform: none;
+        box-shadow: none;
     }
 }
 

@@ -66,6 +66,15 @@ python -m http.server 8000
 npx serve .
 ```
 
+### Branch previews & mobile testing
+
+- Use PR Preview links (auto-generated) to test any branch on a real phone over HTTPS. Each pull request builds and deploys to a unique GitHub Pages preview URL.
+- Quick local-on-phone testing:
+  - Dev server: `npm run dev -- --host` then open `http://<your-computer-ip>:5173` on your phone (same Wi‑Fi).
+  - Production preview locally: `npm run build && npm run preview -- --host` then open `http://<your-computer-ip>:4173`.
+
+> Note: Mobile browsers require a user gesture to start audio. Tap a button to initialize audio before expecting sound.
+
 ## 🏗️ Architecture
 
 ### File Structure

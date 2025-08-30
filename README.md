@@ -237,3 +237,28 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **superfreq** - Where audio production meets puzzle gaming! 🎵🧩
+
+### 🌐 Deploying to GitHub Pages
+
+- **Prerequisites**
+  - A GitHub repository with this code on the `main` branch
+  - GitHub Actions enabled for the repository
+
+- **Enable Pages**
+  - Go to Settings → Pages
+  - Set "Build and deployment" → "Source" to "GitHub Actions"
+
+- **Workflow**
+  - A workflow is already included at `.github/workflows/pages.yml`
+  - On push to `main`, it uploads `index.html`, `css/`, `js/`, and `test-audio.html` to Pages
+  - It also adds `.nojekyll` so files are served as-is
+
+- **First Deploy**
+  - Push to `main`
+  - Check Actions tab for the "Deploy static site to GitHub Pages" run
+  - When complete, the Pages URL appears in the job summary and under Settings → Pages
+
+- **Custom Domain (Optional)**
+  - Add your domain in Settings → Pages → Custom domain
+  - Create a `CNAME` record at your DNS pointing to `<username>.github.io`
+  - If you want to pin the domain in the repo, create a `CNAME` file at the site root containing your domain (e.g., `example.com`)

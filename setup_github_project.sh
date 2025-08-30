@@ -99,13 +99,10 @@ query {
       nodes {
         id
         title
-        repository {
-          name
-        }
       }
     }
   }
-}' --jq '.data.user.projectsV2.nodes[] | select(.repository.name == "'$REPO_NAME'") | .id')
+}' --jq '.data.user.projectsV2.nodes[] | select(.title == "'$PROJECT_NAME'") | .id')
 
 if [ -z "$PROJECT_ID" ]; then
     echo "Creating project board..."
@@ -158,23 +155,42 @@ echo ""
 echo -e "${BLUE}🏷️  Step 6: Creating Labels${NC}"
 echo "---------------------------"
 
+# Function to create label if it doesn't exist
+create_label_if_missing() {
+    local name="$1"
+    local description="$2"
+    local color="$3"
+    
+    # Check if label exists
+    if ! gh api repos/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\")" >/dev/null 2>&1; then
+        echo "Creating label: $name"
+        gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" >/dev/null 2>&1
+    else
+        echo -e "${YELLOW}⚠️  Label '$name' already exists${NC}"
+    fi
+}
+
 # Priority labels
-gh api repos/$REPO_NAME/labels -f name="priority: high" -f description="Critical for MVP" -f color="d73a4a" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="priority: medium" -f description="Important for launch" -f color="fbca04" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="priority: low" -f description="Nice to have" -f color="0e8a16" >/dev/null 2>&1 || true
+create_label_if_missing "priority: high" "Critical for MVP" "d73a4a"
+create_label_if_missing "priority: medium" "Important for launch" "fbca04"
+create_label_if_missing "priority: low" "Nice to have" "0e8a16"
 
 # Type labels
-gh api repos/$REPO_NAME/labels -f name="type: feature" -f description="New functionality" -f color="1d76db" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="type: bug" -f description="Bug fixes" -f color="d73a4a" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="type: enhancement" -f description="Improvements" -f color="a2eeef" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="type: documentation" -f description="Docs and guides" -f color="0075ca" >/dev/null 2>&1 || true
+create_label_if_missing "type: feature" "New functionality" "1d76db"
+create_label_if_missing "type: bug" "Bug fixes" "d73a4a"
+create_label_if_missing "type: enhancement" "Improvements" "a2eeef"
+create_label_if_missing "type: documentation" "Docs and guides" "0075ca"
+create_label_if_missing "type: design" "UI/UX improvements" "5319e7"
+create_label_if_missing "type: styling" "Visual and theme updates" "c2e0c6"
 
 # Component labels
-gh api repos/$REPO_NAME/labels -f name="component: core" -f description="Game logic" -f color="5319e7" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="component: audio" -f description="Audio system" -f color="c2e0c6" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="component: ui" -f description="User interface" -f color="bfdadc" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="component: data" -f description="Puzzle data" -f color="fef2c0" >/dev/null 2>&1 || true
-gh api repos/$REPO_NAME/labels -f name="component: infrastructure" -f description="Hosting/deployment" -f color="d4c5f9" >/dev/null 2>&1 || true
+create_label_if_missing "component: core" "Game logic" "5319e7"
+create_label_if_missing "component: audio" "Audio system" "c2e0c6"
+create_label_if_missing "component: ui" "User interface" "bfdadc"
+create_label_if_missing "component: ux" "User experience" "fef2c0"
+create_label_if_missing "component: design" "Visual design system" "d4c5f9"
+create_label_if_missing "component: data" "Puzzle data" "fef2c0"
+create_label_if_missing "component: infrastructure" "Hosting/deployment" "d4c5f9"
 
 echo -e "${GREEN}✅ Labels created${NC}"
 
@@ -183,12 +199,23 @@ echo ""
 echo -e "${BLUE}🎯 Step 7: Creating Issues${NC}"
 echo "----------------------------"
 
-# Function to create issue
-create_issue() {
+# Function to check if issue exists
+issue_exists() {
+    local title="$1"
+    gh api repos/$REPO_NAME/issues --jq ".[] | select(.title == \"$title\")" >/dev/null 2>&1
+}
+
+# Function to create issue if it doesn't exist
+create_issue_if_missing() {
     local number=$1
     local title="$2"
     local body="$3"
     local labels="$4"
+    
+    if issue_exists "$title"; then
+        echo -e "${YELLOW}⚠️  Issue #$number already exists: $title${NC}"
+        return
+    fi
     
     echo "Creating issue #$number: $title"
     
@@ -230,7 +257,7 @@ create_issue() {
 }
 
 # Foundation & Setup Issues
-create_issue 1 "Set up GitHub repository and project board" "## Feature Description
+create_issue_if_missing 1 "Set up GitHub repository and project board" "## Feature Description
 Set up the complete GitHub infrastructure for the Freq project.
 
 ## Acceptance Criteria
@@ -254,7 +281,7 @@ Low
 ## Notes
 This is the foundational setup issue." "priority: high,type: feature,component: infrastructure"
 
-create_issue 2 "Configure GitHub Pages for hosting" "## Feature Description
+create_issue_if_missing 2 "Configure GitHub Pages for hosting" "## Feature Description
 Set up GitHub Pages to host the Freq game for free.
 
 ## Acceptance Criteria
@@ -279,7 +306,7 @@ Low
 GitHub Pages provides free hosting for static sites." "priority: high,type: feature,component: infrastructure"
 
 # Core Game Logic Issues
-create_issue 5 "Implement daily puzzle selection system" "## Feature Description
+create_issue_if_missing 5 "Implement daily puzzle selection system" "## Feature Description
 Create the system that selects puzzles based on the current date.
 
 ## Acceptance Criteria
@@ -303,11 +330,160 @@ Medium
 ## Notes
 This is core to the daily puzzle concept." "priority: high,type: feature,component: core"
 
-# Continue with more issues...
-echo "Creating additional issues..."
+# VST-Style Design Issues
+create_issue_if_missing 26 "Implement dark theme color palette" "## Design Description
+Create a professional dark theme color palette for the VST-style interface.
+
+## Visual Requirements
+- [ ] Dark gray primary background (#1a1a1a)
+- [ ] Secondary background (#2a2a2a)
+- [ ] Professional accent colors (blues/greens)
+- [ ] High contrast text colors
+
+## VST-Style Guidelines
+- [ ] Professional audio plugin aesthetic
+- [ ] Dark theme compliance
+- [ ] Consistent color usage
+- [ ] Accessibility considerations
+
+## Acceptance Criteria
+- [ ] Design matches VST aesthetic
+- [ ] High contrast for readability
+- [ ] Professional appearance
+- [ ] Color palette documented
+
+## Dependencies
+- [ ] Design system established
+- [ ] Component library ready
+
+## Estimated Effort
+Medium
+
+## Notes
+Foundation for all VST-style components." "priority: high,type: design,component: design"
+
+create_issue_if_missing 27 "Create VST-style parameter knobs" "## Design Description
+Design and implement circular parameter knobs similar to professional audio plugins.
+
+## Visual Requirements
+- [ ] Circular knob design with value indicators
+- [ ] Smooth rotation animations
+- [ ] Value display on or near knob
+- [ ] Professional styling and shadows
+
+## VST-Style Guidelines
+- [ ] Professional audio plugin aesthetic
+- [ ] Smooth parameter animations
+- [ ] Intuitive interaction design
+- [ ] Consistent with audio industry standards
+
+## Acceptance Criteria
+- [ ] Knobs look professional and polished
+- [ ] Smooth rotation and interaction
+- [ ] Clear value indication
+- [ ] Responsive across devices
+
+## Dependencies
+- [ ] Dark theme implemented
+- [ ] CSS animations ready
+- [ ] Design system established
+
+## Estimated Effort
+High
+
+## Notes
+Core component for parameter control." "priority: high,type: design,component: design"
+
+create_issue_if_missing 28 "Design professional audio plugin layout" "## Design Description
+Create the main layout structure that resembles professional VST plugins.
+
+## Visual Requirements
+- [ ] Grid-based layout system
+- [ ] Logical control grouping
+- [ ] Professional spacing and alignment
+- [ ] Clear visual hierarchy
+
+## VST-Style Guidelines
+- [ ] Professional audio plugin aesthetic
+- [ ] Consistent spacing and alignment
+- [ ] Logical information architecture
+- [ ] Industry-standard layout patterns
+
+## Acceptance Criteria
+- [ ] Layout looks professional
+- [ ] Controls are logically grouped
+- [ ] Information hierarchy is clear
+- [ ] Responsive across screen sizes
+
+## Dependencies
+- [ ] Dark theme implemented
+- [ ] Component library ready
+- [ ] Grid system established
+
+## Estimated Effort
+Medium
+
+## Notes
+Foundation for all interface components." "priority: high,type: design,component: design"
+
+# Audio Parameter Control Issues
+create_issue_if_missing 35 "Design knob parameter input system" "## Feature Description
+Create the interactive system for parameter input using VST-style knobs.
+
+## Acceptance Criteria
+- [ ] Knobs respond to mouse/touch input
+- [ ] Parameter values update in real-time
+- [ ] Smooth rotation animations
+- [ ] Value constraints and validation
+
+## Technical Requirements
+- [ ] Mouse and touch event handling
+- [ ] Real-time parameter updates
+- [ ] Smooth CSS animations
+- [ ] Parameter validation system
+
+## Dependencies
+- [ ] VST-style knobs implemented
+- [ ] Audio system ready
+- [ ] Parameter validation system
+
+## Estimated Effort
+High
+
+## Notes
+Core interaction system for the game." "priority: high,type: feature,component: ux"
+
+create_issue_if_missing 36 "Implement smooth knob rotation and interaction" "## Feature Description
+Add smooth, professional rotation animations and interactions to parameter knobs.
+
+## Acceptance Criteria
+- [ ] Smooth rotation animations
+- [ ] Real-time parameter updates
+- [ ] Professional feel and response
+- [ ] Performance optimized
+
+## Technical Requirements
+- [ ] CSS transforms and transitions
+- [ ] JavaScript animation handling
+- [ ] Performance optimization
+- [ ] Cross-browser compatibility
+
+## Dependencies
+- [ ] Knob parameter system implemented
+- [ ] CSS animation system ready
+- [ ] Performance testing framework
+
+## Estimated Effort
+Medium
+
+## Notes
+Critical for professional feel." "priority: medium,type: enhancement,component: ux"
+
+# Continue with more key issues...
+echo "Creating additional VST-style and audio control issues..."
 
 # Create a few more key issues to demonstrate
-create_issue 10 "Set up Web Audio API integration" "## Feature Description
+create_issue_if_missing 10 "Set up Web Audio API integration" "## Feature Description
 Integrate Web Audio API for better audio control and performance.
 
 ## Acceptance Criteria
@@ -331,7 +507,7 @@ Medium
 ## Notes
 Critical for audio quality and user experience." "priority: high,type: feature,component: audio"
 
-create_issue 20 "Build main game layout and structure" "## Feature Description
+create_issue_if_missing 20 "Build main game layout and structure" "## Feature Description
 Create the main game interface layout and structure.
 
 ## Acceptance Criteria
@@ -375,17 +551,24 @@ echo ""
 echo -e "${BLUE}What was created:${NC}"
 echo "✅ Repository: $REPO_NAME"
 echo "✅ Project Board: $PROJECT_NAME"
-echo "✅ Labels: Priority, Type, and Component labels"
-echo "✅ Issues: Core development issues created"
+echo "✅ Labels: Priority, Type, Component, and Design labels"
+echo "✅ Issues: VST-style development issues created"
 echo "✅ GitHub Pages: Enabled for hosting"
+echo ""
+echo -e "${BLUE}VST-Style Features Added:${NC}"
+echo "🎨 Dark theme and professional color palette"
+echo "🎛️ VST-style parameter knobs and controls"
+echo "🎚️ Professional audio plugin layout"
+echo "✨ Smooth animations and transitions"
+echo "📱 Responsive and accessible design"
 echo ""
 echo -e "${BLUE}Next steps:${NC}"
 echo "1. Visit: https://github.com/$(gh api user --jq .login)/$REPO_NAME"
 echo "2. Go to Projects tab to see your board"
 echo "3. Assign issues to team members/agents"
-echo "4. Start development!"
+echo "4. Start development of the VST-style interface!"
 echo ""
 echo -e "${BLUE}Your game will be available at:${NC}"
 echo "https://$(gh api user --jq .login).github.io/$REPO_NAME"
 echo ""
-echo -e "${GREEN}🚀 Ready to build Freq! 🎵${NC}"
+echo -e "${GREEN}🚀 Ready to build Freq - The VST-Style Audio Puzzle Game! 🎵🎛️${NC}"

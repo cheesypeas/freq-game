@@ -248,15 +248,11 @@ create_issue_if_missing() {
     
     echo "Creating issue #$number: $title"
     
-    # Convert comma-separated labels to array format
-    local labels_array=$(echo "$labels" | tr ',' '\n' | tr -d ' ' | jq -R . | jq -s .)
+    # Use gh issue create command which handles labels properly
+    local response=$(gh issue create --title "$title" --body "$body" --label "$labels" 2>&1)
     
-    # Create issue with correct GitHub CLI syntax
-    local response=$(gh api repos/cheesypeas/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels_array" 2>&1)
-    
-    if echo "$response" | grep -q '"id"'; then
-        local issue_id=$(echo "$response" | jq '.id')
-        echo -e "${GREEN}✅ Issue #$number created successfully (ID: $issue_id)${NC}"
+    if echo "$response" | grep -q "https://github.com"; then
+        echo -e "${GREEN}✅ Issue #$number created successfully${NC}"
         echo -e "${BLUE}Note: You can manually add this issue to your project board${NC}"
     else
         echo -e "${RED}❌ Failed to create issue #$number: $title${NC}"

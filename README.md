@@ -66,6 +66,33 @@ python -m http.server 8000
 npx serve .
 ```
 
+## 🐛 GitHub Issues Management
+
+Manage GitHub issues directly from your local machine using the included script:
+
+```bash
+# Quick issue creation (agent-friendly)
+./manage_github_issues.sh create-bug 'Audio bug' 'Audio stops' 'Click play' 'Audio plays' 'Audio stops'
+./manage_github_issues.sh create-feature 'New effect' 'Add reverb' 'User wants reverb' 'More variety'
+./manage_github_issues.sh create-audio 'Audio issue' 'No sound' 'sample.wav' 'Should play' 'Silent'
+./manage_github_issues.sh create-puzzle 'Puzzle bug' 'Wrong answer' 'Easy' '100Hz' 'Shows 200Hz'
+
+# Issue management
+./manage_github_issues.sh list --state open
+./manage_github_issues.sh view 123
+./manage_github_issues.sh assign 123 --user username
+./manage_github_issues.sh close 123 --reason 'completed'
+
+# Project overview
+./manage_github_issues.sh status
+./manage_github_issues.sh search 'audio playback'
+
+# Get help
+./manage_github_issues.sh help
+```
+
+Perfect for use with Cursor agent chats and local development workflow!
+
 ## 🏗️ Architecture
 
 ### File Structure

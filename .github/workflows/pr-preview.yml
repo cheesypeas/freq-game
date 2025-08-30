@@ -1,0 +1,51 @@
+name: PR Preview (GitHub Pages)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Prepare static preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create preview artifact
+        run: |
+          mkdir -p preview
+          cp -r index.html css js preview/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./preview
+
+  deploy:
+    name: Deploy preview
+    needs: package
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages (preview)
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          preview: true
+

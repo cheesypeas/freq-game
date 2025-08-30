@@ -1,0 +1,23 @@
+name: PR Preview Cleanup (GitHub Pages)
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Delete preview deployment
+        uses: actions/deploy-pages@v4
+        with:
+          preview: true
+          action: delete
+

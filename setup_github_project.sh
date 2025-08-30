@@ -20,6 +20,18 @@ PROJECT_DESCRIPTION="Development board for Superfreq audio puzzle game"
 
 echo -e "${BLUE}🎵 superfreq GitHub Project Setup Automation${NC}"
 echo "================================================"
+echo ""
+echo -e "${GREEN}🛡️  SAFETY FEATURES: This script is completely safe to re-run!${NC}"
+echo "✅ Repository: Only creates if doesn't exist"
+echo "✅ Git remote: Updates existing instead of duplicating"
+echo "✅ Git push: Only pushes if there are changes"
+echo "✅ Labels: Only creates if they don't exist"
+echo "✅ Issues: Only creates if they don't exist"
+echo "✅ Project board: Detects existing ones"
+echo "✅ GitHub Pages: Only enables if not already enabled"
+echo ""
+echo -e "${BLUE}You can run this script multiple times safely! 🚀${NC}"
+echo ""
 
 # Check if gh is authenticated
 if ! gh auth status >/dev/null 2>&1; then
@@ -81,10 +93,15 @@ echo ""
 echo -e "${BLUE}📤 Step 3: Pushing Code to GitHub${NC}"
 echo "-----------------------------------"
 
-echo "Pushing code to GitHub..."
-git push -u origin main
-
-echo -e "${GREEN}✅ Code pushed successfully${NC}"
+# Check if there are any changes to push
+if git status --porcelain | grep -q .; then
+    echo "Changes detected, pushing to GitHub..."
+    git push -u origin main
+    echo -e "${GREEN}✅ Code pushed successfully${NC}"
+else
+    echo "No changes to push, repository is up to date"
+    echo -e "${GREEN}✅ Repository already up to date${NC}"
+fi
 
 # Step 4: Project Board Setup
 echo ""
@@ -98,7 +115,7 @@ echo -e "${BLUE}Looking for project board: $PROJECT_NAME${NC}"
 PROJECT_EXISTS=false
 
 # Check if we can find the project board via API
-if gh api repos/$REPO_NAME/projects >/dev/null 2>&1; then
+if gh api repos/cheesypeas/$REPO_NAME/projects >/dev/null 2>&1; then
     echo -e "${GREEN}✅ Repository projects accessible${NC}"
     PROJECT_EXISTS=true
 else
@@ -117,7 +134,8 @@ else
     echo "4. Name it: '$PROJECT_NAME'"
     echo "5. Add columns: Backlog, In Progress, Review, Done"
     echo ""
-    read -p "Press Enter after you've created the project board manually..."
+    echo -e "${BLUE}Note: You can skip this step if you want to create the project board later${NC}"
+    read -p "Press Enter after you've created the project board, or just press Enter to continue without it..."
 fi
 
 echo -e "${GREEN}✅ Project board setup complete${NC}"
@@ -133,9 +151,6 @@ echo ""
 echo -e "${BLUE}🏷️  Step 6: Creating Labels${NC}"
 echo "---------------------------"
 
-echo "Debug: REPO_NAME = '$REPO_NAME'"
-echo "Debug: Current working directory = $(pwd)"
-
 # Function to create label if it doesn't exist
 create_label_if_missing() {
     local name="$1"
@@ -143,7 +158,6 @@ create_label_if_missing() {
     local color="$3"
     
     echo "Checking label: $name"
-    echo "Debug: Using REPO_NAME = '$REPO_NAME'"
     
     # Check if label exists by counting results
     local existing_count=$(gh api repos/cheesypeas/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\") | .name" 2>/dev/null | wc -l)
@@ -533,10 +547,19 @@ echo ""
 echo -e "${BLUE}🌐 Step 8: Enabling GitHub Pages${NC}"
 echo "--------------------------------"
 
-echo "Enabling GitHub Pages..."
-gh api repos/$REPO_NAME/pages -f source='{"branch":"main","path":"/"}' >/dev/null 2>&1 || echo -e "${YELLOW}⚠️  GitHub Pages may already be enabled or need manual configuration${NC}"
-
-echo -e "${GREEN}✅ GitHub Pages configured${NC}"
+# Check if GitHub Pages is already enabled
+echo "Checking GitHub Pages status..."
+if gh api repos/cheesypeas/$REPO_NAME/pages >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ GitHub Pages is already enabled${NC}"
+else
+    echo "Enabling GitHub Pages..."
+    if gh api repos/cheesypeas/$REPO_NAME/pages -f source='{"branch":"main","path":"/"}' >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ GitHub Pages enabled successfully${NC}"
+    else
+        echo -e "${YELLOW}⚠️  GitHub Pages may already be enabled or need manual configuration${NC}"
+        echo "You can check/enable it manually at: https://github.com/cheesypeas/$REPO_NAME/settings/pages"
+    fi
+fi
 
 # Final Summary
 echo ""

@@ -146,14 +146,14 @@ create_label_if_missing() {
     echo "Debug: Using REPO_NAME = '$REPO_NAME'"
     
     # Check if label exists by counting results
-    local existing_count=$(gh api repos/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\") | .name" 2>/dev/null | wc -l)
+    local existing_count=$(gh api repos/cheesypeas/$REPO_NAME/labels --jq ".[] | select(.name == \"$name\") | .name" 2>/dev/null | wc -l)
     
     if [ "$existing_count" -gt 0 ]; then
         echo -e "${YELLOW}⚠️  Label '$name' already exists${NC}"
     else
         echo "Creating label: $name"
         # Use the correct GitHub CLI syntax for creating labels
-        local response=$(gh api repos/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" 2>&1)
+        local response=$(gh api repos/cheesypeas/$REPO_NAME/labels -f name="$name" -f description="$description" -f color="$color" 2>&1)
         
         if echo "$response" | grep -q '"id"'; then
             local label_id=$(echo "$response" | jq '.id')
@@ -217,7 +217,7 @@ echo "----------------------------"
 # Function to check if issue exists
 issue_exists() {
     local title="$1"
-    gh api repos/$REPO_NAME/issues --jq ".[] | select(.title == \"$title\")" >/dev/null 2>&1
+    gh api repos/cheesypeas/$REPO_NAME/issues --jq ".[] | select(.title == \"$title\")" >/dev/null 2>&1
 }
 
 # Function to create issue if it doesn't exist
@@ -238,7 +238,7 @@ create_issue_if_missing() {
     local labels_array=$(echo "$labels" | tr ',' '\n' | tr -d ' ' | jq -R . | jq -s .)
     
     # Create issue with correct GitHub CLI syntax
-    local response=$(gh api repos/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels_array" 2>&1)
+    local response=$(gh api repos/cheesypeas/$REPO_NAME/issues -f title="$title" -f body="$body" -f labels="$labels_array" 2>&1)
     
     if echo "$response" | grep -q '"id"'; then
         local issue_id=$(echo "$response" | jq '.id')

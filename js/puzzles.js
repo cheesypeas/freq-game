@@ -149,7 +149,7 @@ class PuzzleSystem {
                 maxValue: effect.maxValue,
                 unit: effect.unit,
                 sampleType: sampleTypes[i % sampleTypes.length],
-                drySample: `audio/samples/${sampleTypes[i % sampleTypes.length]}_day${String(i + 1).padStart(3, '0')}.wav`,
+                drySample: `${(window.APP_CONFIG && window.APP_CONFIG.CDN_BASE_URL) ? window.APP_CONFIG.CDN_BASE_URL.replace(/\/$/, '') + '/' : ''}audio/samples/${sampleTypes[i % sampleTypes.length]}_day${String(i + 1).padStart(3, '0')}.wav`,
                 livesAllocated: 5,
                 effectPresets: effectPresets
             };

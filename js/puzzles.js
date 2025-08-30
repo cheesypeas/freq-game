@@ -134,6 +134,9 @@ class PuzzleSystem {
                 correctValue = Math.round(correctValue * 100) / 100;
             }
 
+            // Generate effect presets for consistent sound
+            const effectPresets = this.generateEffectPresets(effectType);
+
             puzzles[dateKey] = {
                 date: dateKey,
                 effectType: effectType,
@@ -146,19 +149,78 @@ class PuzzleSystem {
                 maxValue: effect.maxValue,
                 unit: effect.unit,
                 sampleType: sampleTypes[i % sampleTypes.length],
-                drySample: `https://cdn.example.com/audio/${dateKey}/dry.mp3`,
-                effectedVersions: [
-                    `https://cdn.example.com/audio/${dateKey}/version1.mp3`,
-                    `https://cdn.example.com/audio/${dateKey}/version2.mp3`,
-                    `https://cdn.example.com/audio/${dateKey}/version3.mp3`,
-                    `https://cdn.example.com/audio/${dateKey}/version4.mp3`,
-                    `https://cdn.example.com/audio/${dateKey}/version5.mp3`,
-                    `https://cdn.example.com/audio/${dateKey}/version6.mp3`
-                ]
+                drySample: `audio/samples/${sampleTypes[i % sampleTypes.length]}_day${String(i + 1).padStart(3, '0')}.wav`,
+                livesAllocated: 5,
+                effectPresets: effectPresets
             };
         }
         
         return puzzles;
+    }
+
+    /**
+     * Generate effect presets for consistent sound across puzzles
+     */
+    generateEffectPresets(effectType) {
+        const presets = {};
+        
+        switch (effectType) {
+            case 'eq':
+                presets.eq = {
+                    gain: 6,
+                    q: 1.0
+                };
+                break;
+            case 'reverb':
+                presets.reverb = {
+                    roomSize: 0.8
+                };
+                break;
+            case 'compression':
+                presets.compression = {
+                    ratio: 4,
+                    attack: 0.003,
+                    release: 0.25
+                };
+                break;
+            case 'delay':
+                presets.delay = {
+                    feedback: 0.3
+                };
+                break;
+            case 'phaser':
+                presets.phaser = {
+                    depth: 0.8,
+                    feedback: 0.2,
+                    stages: 4
+                };
+                break;
+            case 'flanger':
+                presets.flanger = {
+                    depth: 0.002,
+                    feedback: 0.3
+                };
+                break;
+            case 'chorus':
+                presets.chorus = {
+                    depth: 0.002,
+                    feedback: 0.2
+                };
+                break;
+            case 'distortion':
+                presets.distortion = {
+                    curve: 400
+                };
+                break;
+            case 'filter':
+                presets.filter = {
+                    type: 'lowpass',
+                    q: 1.0
+                };
+                break;
+        }
+        
+        return presets;
     }
 
     /**
@@ -255,6 +317,64 @@ class PuzzleSystem {
         } else {
             return value.toFixed(2);
         }
+    }
+
+    /**
+     * Get recommended lives allocation for an effect type
+     */
+    getRecommendedLives(effectType) {
+        // Some effects are harder to distinguish, so allocate more lives
+        const difficultyMap = {
+            'eq': 4,        // Frequency changes are relatively easy to hear
+            'reverb': 6,    // Wet/dry mix can be subtle
+            'compression': 5, // Threshold changes can be hard to hear
+            'delay': 4,     // Timing is usually clear
+            'phaser': 5,    // Rate changes can be subtle
+            'flanger': 5,   // Rate changes can be subtle
+            'chorus': 5,    // Rate changes can be subtle
+            'distortion': 4, // Drive changes are usually obvious
+            'filter': 4     // Frequency changes are relatively easy to hear
+        };
+        
+        return difficultyMap[effectType] || 5;
+    }
+
+    /**
+     * Get effect difficulty rating
+     */
+    getEffectDifficulty(effectType) {
+        const difficultyMap = {
+            'eq': 'Easy',
+            'reverb': 'Hard',
+            'compression': 'Medium',
+            'delay': 'Easy',
+            'phaser': 'Medium',
+            'flanger': 'Medium',
+            'chorus': 'Medium',
+            'distortion': 'Easy',
+            'filter': 'Easy'
+        };
+        
+        return difficultyMap[effectType] || 'Medium';
+    }
+
+    /**
+     * Get tips for a specific effect type
+     */
+    getEffectTips(effectType) {
+        const tipsMap = {
+            'eq': 'Listen for changes in brightness or warmth. Higher frequencies add brightness, lower frequencies add warmth.',
+            'reverb': 'Focus on the sense of space. More reverb makes it sound like it\'s in a larger room.',
+            'compression': 'Listen for dynamic range. Compression makes loud parts quieter and quiet parts louder.',
+            'delay': 'Listen for echoes. Longer delays create more space between the original and the echo.',
+            'phaser': 'Listen for a sweeping, whooshing sound. Faster rates create more movement.',
+            'flanger': 'Listen for a jet-like swooshing effect. Faster rates create more intense movement.',
+            'chorus': 'Listen for a thickening effect that makes it sound like multiple instruments.',
+            'distortion': 'Listen for added harmonics and grit. More drive creates more saturation.',
+            'filter': 'Listen for changes in brightness. Lower cutoff frequencies remove high frequencies.'
+        };
+        
+        return tipsMap[effectType] || 'Listen carefully to the changes in the audio as you adjust the parameter.';
     }
 }
 

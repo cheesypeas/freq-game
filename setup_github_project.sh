@@ -231,7 +231,8 @@ echo "----------------------------"
 # Function to check if issue exists
 issue_exists() {
     local title="$1"
-    gh api repos/cheesypeas/$REPO_NAME/issues --jq ".[] | select(.title == \"$title\")" >/dev/null 2>&1
+    local count=$(gh api repos/cheesypeas/$REPO_NAME/issues --jq ".[] | select(.title == \"$title\") | .number" 2>/dev/null | wc -l)
+    [ "$count" -gt 0 ]
 }
 
 # Function to create issue if it doesn't exist

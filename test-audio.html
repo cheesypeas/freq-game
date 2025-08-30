@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freq - Audio Effects Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        input[type="range"] {
+            width: 200px;
+            margin: 10px;
+        }
+        .parameter-control {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Freq - Audio Effects Test</h1>
+    
+    <div class="test-section">
+        <h2>Web Audio API Test</h2>
+        <button id="init-audio">Initialize Audio Context</button>
+        <button id="test-oscillator">Test Oscillator</button>
+        <div id="audio-status" class="status info">Click "Initialize Audio Context" to start</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Effects Engine Test</h2>
+        <button id="init-effects">Initialize Effects Engine</button>
+        <div id="effects-status" class="status info">Click "Initialize Effects Engine" to start</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Effect Tests</h2>
+        <div id="effect-tests" style="display: none;">
+            <div class="parameter-control">
+                <h3>EQ Test</h3>
+                <label>Frequency: <span id="eq-freq-value">1000</span> Hz</label><br>
+                <input type="range" id="eq-freq" min="20" max="20000" value="1000" step="1">
+                <button id="test-eq">Test EQ</button>
+            </div>
+
+            <div class="parameter-control">
+                <h3>Filter Test</h3>
+                <label>Cutoff: <span id="filter-freq-value">1000</span> Hz</label><br>
+                <input type="range" id="filter-freq" min="20" max="20000" value="1000" step="1">
+                <button id="test-filter">Test Filter</button>
+            </div>
+
+            <div class="parameter-control">
+                <h3>Delay Test</h3>
+                <label>Time: <span id="delay-time-value">100</span> ms</label><br>
+                <input type="range" id="delay-time" min="10" max="1000" value="100" step="10">
+                <button id="test-delay">Test Delay</button>
+            </div>
+
+            <div class="parameter-control">
+                <h3>Phaser Test</h3>
+                <label>Rate: <span id="phaser-rate-value">0.5</span> Hz</label><br>
+                <input type="range" id="phaser-rate" min="0.1" max="2.0" value="0.5" step="0.1">
+                <button id="test-phaser">Test Phaser</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Audio File Test</h2>
+        <input type="file" id="audio-file" accept="audio/*">
+        <button id="load-audio">Load Audio File</button>
+        <button id="play-dry">Play Dry</button>
+        <button id="play-effected">Play with Effect</button>
+        <div id="file-status" class="status info">Select an audio file to test</div>
+    </div>
+
+    <script src="js/effects.js"></script>
+    <script>
+        let audioContext = null;
+        let effectsEngine = null;
+        let audioBuffer = null;
+        let currentEffect = null;
+        let isEffectReady = false;
+
+        // Initialize Audio Context
+        document.getElementById('init-audio').addEventListener('click', async () => {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                await audioContext.resume();
+                
+                document.getElementById('audio-status').className = 'status success';
+                document.getElementById('audio-status').textContent = `Audio Context initialized. State: ${audioContext.state}`;
+                
+                // Enable effects initialization
+                document.getElementById('init-effects').disabled = false;
+            } catch (error) {
+                document.getElementById('audio-status').className = 'status error';
+                document.getElementById('audio-status').textContent = `Failed to initialize audio: ${error.message}`;
+            }
+        });
+
+        // Test Oscillator
+        document.getElementById('test-oscillator').addEventListener('click', () => {
+            if (!audioContext) {
+                alert('Please initialize audio context first');
+                return;
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 1);
+            
+            document.getElementById('audio-status').className = 'status success';
+            document.getElementById('audio-status').textContent = 'Oscillator test completed successfully!';
+        });
+
+        // Initialize Effects Engine
+        document.getElementById('init-effects').addEventListener('click', () => {
+            if (!audioContext) {
+                alert('Please initialize audio context first');
+                return;
+            }
+
+            try {
+                effectsEngine = new AudioEffectsEngine(audioContext);
+                document.getElementById('effects-status').className = 'status success';
+                document.getElementById('effects-status').textContent = 'Effects Engine initialized successfully!';
+                
+                // Show effect tests
+                document.getElementById('effect-tests').style.display = 'block';
+            } catch (error) {
+                document.getElementById('effects-status').className = 'status error';
+                document.getElementById('effects-status').textContent = `Failed to initialize effects: ${error.message}`;
+            }
+        });
+
+        // Effect test functions
+        function testEffect(effectType, params) {
+            if (!effectsEngine) {
+                alert('Please initialize effects engine first');
+                return;
+            }
+
+            if (!isEffectReady) {
+                alert('Please load an audio file first');
+                return;
+            }
+
+            try {
+                // Stop any currently playing audio
+                effectsEngine.stopAudio();
+                
+                // Create effect chain
+                currentEffect = effectsEngine.createEffectChain(effectType, params);
+                
+                // Play audio with effect
+                const success = effectsEngine.playAudio();
+                if (success) {
+                    document.getElementById('file-status').className = 'status success';
+                    document.getElementById('file-status').textContent = `${effectType} effect applied successfully!`;
+                } else {
+                    document.getElementById('file-status').className = 'status error';
+                    document.getElementById('file-status').textContent = `Failed to play audio with ${effectType} effect`;
+                }
+            } catch (error) {
+                console.error('Effect test error:', error);
+                document.getElementById('file-status').className = 'status error';
+                document.getElementById('file-status').textContent = `Failed to apply ${effectType} effect: ${error.message}`;
+            }
+        }
+
+        // EQ Test
+        document.getElementById('test-eq').addEventListener('click', () => {
+            const freq = parseFloat(document.getElementById('eq-freq').value);
+            testEffect('eq', { frequency: freq });
+        });
+
+        // Filter Test
+        document.getElementById('test-filter').addEventListener('click', () => {
+            const freq = parseFloat(document.getElementById('filter-freq').value);
+            testEffect('filter', { frequency: freq, type: 'lowpass' });
+        });
+
+        // Delay Test
+        document.getElementById('test-delay').addEventListener('click', () => {
+            const time = parseFloat(document.getElementById('delay-time').value);
+            testEffect('delay', { time: time });
+        });
+
+        // Phaser Test
+        document.getElementById('test-phaser').addEventListener('click', () => {
+            const rate = parseFloat(document.getElementById('phaser-rate').value);
+            testEffect('phaser', { rate: rate });
+        });
+
+        // Update parameter display values
+        document.getElementById('eq-freq').addEventListener('input', (e) => {
+            document.getElementById('eq-freq-value').textContent = e.target.value;
+        });
+
+        document.getElementById('filter-freq').addEventListener('input', (e) => {
+            document.getElementById('filter-freq-value').textContent = e.target.value;
+        });
+
+        document.getElementById('delay-time').addEventListener('input', (e) => {
+            document.getElementById('delay-time-value').textContent = e.target.value;
+        });
+
+        document.getElementById('phaser-rate').addEventListener('input', (e) => {
+            document.getElementById('phaser-rate-value').textContent = e.target.value;
+        });
+
+        // Load Audio File
+        document.getElementById('load-audio').addEventListener('click', async () => {
+            const fileInput = document.getElementById('audio-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select an audio file first');
+                return;
+            }
+
+            if (!audioContext) {
+                alert('Please initialize audio context first');
+                return;
+            }
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // Load the audio into the effects engine
+                if (effectsEngine) {
+                    // Store the buffer directly in the effects engine
+                    effectsEngine.drySampleBuffer = audioBuffer;
+                    isEffectReady = true;
+                    
+                    document.getElementById('file-status').className = 'status success';
+                    document.getElementById('file-status').textContent = `Audio file loaded into effects engine: ${file.name}`;
+                    
+                    // Enable play buttons
+                    document.getElementById('play-dry').disabled = false;
+                    document.getElementById('play-effected').disabled = false;
+                } else {
+                    document.getElementById('file-status').className = 'status success';
+                    document.getElementById('file-status').textContent = `Audio file loaded: ${file.name}`;
+                    
+                    // Enable play buttons
+                    document.getElementById('play-dry').disabled = false;
+                    document.getElementById('play-effected').disabled = false;
+                }
+            } catch (error) {
+                console.error('Audio loading error:', error);
+                document.getElementById('file-status').className = 'status error';
+                document.getElementById('file-status').textContent = `Failed to load audio: ${error.message}`;
+            }
+        });
+
+        // Play Dry Audio
+        document.getElementById('play-dry').addEventListener('click', () => {
+            if (!audioContext || !audioBuffer) {
+                alert('Please initialize audio context and load an audio file first');
+                return;
+            }
+
+            try {
+                // Stop any currently playing audio
+                if (effectsEngine) {
+                    effectsEngine.stopAudio();
+                }
+                
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                source.start();
+                
+                document.getElementById('file-status').className = 'status success';
+                document.getElementById('file-status').textContent = 'Playing dry audio...';
+            } catch (error) {
+                console.error('Dry audio playback error:', error);
+                document.getElementById('file-status').textContent = `Failed to play audio: ${error.message}`;
+            }
+        });
+
+        // Play with Effect
+        document.getElementById('play-effected').addEventListener('click', () => {
+            if (!effectsEngine || !isEffectReady) {
+                alert('Please initialize effects engine and load an audio file first');
+                return;
+            }
+
+            if (!currentEffect) {
+                alert('Please test an effect first');
+                return;
+            }
+
+            try {
+                const success = effectsEngine.playAudio();
+                if (success) {
+                    document.getElementById('file-status').className = 'status success';
+                    document.getElementById('file-status').textContent = 'Playing audio with effect...';
+                } else {
+                    document.getElementById('file-status').className = 'status error';
+                    document.getElementById('file-status').textContent = 'Failed to play effected audio';
+                }
+            } catch (error) {
+                console.error('Effected audio playback error:', error);
+                document.getElementById('file-status').className = 'status error';
+                document.getElementById('file-status').textContent = `Failed to play effected audio: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

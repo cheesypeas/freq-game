@@ -102,19 +102,22 @@ main {
 #audio-section {
     margin-bottom: 2rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1rem;
 }
 
-#dry-sample, #effected-sample {
+/* Transport panel */
+.transport {
     margin-bottom: 1.5rem;
     padding: 1rem;
     background: #f8f9fa;
     border-radius: 12px;
     border-left: 4px solid #667eea;
-    text-align: center;
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 /* Panel chrome */
@@ -128,12 +131,21 @@ main {
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.35);
 }
 
+.theme-dark .transport::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.35);
+}
+
 #dry-sample h3, #effected-sample h3 {
     color: #495057;
     margin-bottom: 0.5rem;
 }
 
-.audio-button {
+.audio-button, .transport-button, .bypass-button {
     background: #667eea;
     color: white;
     border: 1px solid transparent;
@@ -148,14 +160,25 @@ main {
     min-width: 200px;
 }
 
-.audio-button:hover {
+.audio-button:hover, .transport-button:hover, .bypass-button:hover {
     background: #5a6fd8;
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(102, 126, 234, 0.38);
 }
 
-.audio-button:active {
+.audio-button:active, .transport-button:active, .bypass-button:active {
     transform: translateY(0);
+}
+
+.bypass-button {
+    background: #6b7280;
+    box-shadow: 0 4px 14px rgba(107, 114, 128, 0.28);
+    min-width: 140px;
+}
+
+.bypass-button.active {
+    background: #ef4444;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.28);
 }
 
 .audio-tip {
@@ -186,6 +209,25 @@ main {
 
 #parameter-input {
     margin-bottom: 1.5rem;
+}
+#fixed-parameter-knobs.fixed-params {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.fixed-knob .knob {
+    --size: 72px;
+    pointer-events: none;
+    opacity: 0.75;
+}
+
+.fixed-knob .knob-caption {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
 }
 
 #parameter-label {

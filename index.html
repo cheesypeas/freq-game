@@ -37,49 +37,56 @@
                         <p id="effect-description"></p>
                     </div>
 
-                    <div id="audio-section">
-                        <div id="dry-sample">
-                            <h3>Dry</h3>
-                            <button id="dry-audio" class="audio-button" data-tooltip="Play original">
-                                ▶︎ Dry
-                            </button>
-                        </div>
-
-                        <div id="effected-sample">
-                            <h3>FX</h3>
-                            <button id="effected-audio" class="audio-button" data-tooltip="Play with current setting">
-                                ▶︎ FX
-                            </button>
+                    <div id="transport" class="transport">
+                        <button id="play-pause" class="transport-button play" data-tooltip="Play/Pause sample">
+                            ▶︎ Play
+                        </button>
+                        <button id="bypass" class="transport-button bypass" aria-pressed="false" data-tooltip="Bypass processing (hear dry)">
+                            Bypass Off
+                        </button>
+                        <div class="transport-status">
+                            <span id="transport-mode" class="badge">FX</span>
                         </div>
                     </div>
 
-                    <div id="guess-section">
-                        <h3>Set</h3>
-                        <div id="parameter-input">
-                            <label for="parameter-slider" id="parameter-label"></label>
-                            <div class="control-row">
-                                <div class="knob-group">
-                                    <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
-                                    <div class="knob-labels">
-                                        <span class="min-label"></span>
-                                        <span class="max-label"></span>
+                    <div id="plugin-panel">
+                        <div id="parameters-panel" class="parameters-panel">
+                            <div class="parameter-card main-parameter">
+                                <div class="parameter-title">
+                                    <label for="parameter-slider" id="parameter-label"></label>
+                                </div>
+                                <div class="control-row">
+                                    <div class="knob-group">
+                                        <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
+                                        <div class="knob-labels">
+                                            <span class="min-label"></span>
+                                            <span class="max-label"></span>
+                                        </div>
+                                    </div>
+                                    <input class="visually-hidden" type="range" id="parameter-slider" min="0" max="100" step="1">
+                                    <div class="parameter-display">
+                                        <span id="parameter-value"></span>
+                                        <span id="parameter-unit"></span>
                                     </div>
                                 </div>
-                                <input class="visually-hidden" type="range" id="parameter-slider" min="0" max="100" step="1">
-                                <div class="parameter-display">
-                                    <span id="parameter-value"></span>
-                                    <span id="parameter-unit"></span>
+                            </div>
+                            <div class="parameter-card fixed-parameters">
+                                <div class="parameter-title">
+                                    <h3>Fixed</h3>
                                 </div>
+                                <div id="fixed-params" class="fixed-params"></div>
                             </div>
                         </div>
-                        
-                        <div class="audition-section">
-                            <button id="audition-button" class="audition-button" data-tooltip="Spend 1 life to preview">
-                                Audition −1
-                            </button>
+
+                        <div id="guess-section">
+                            <div class="audition-section">
+                                <button id="audition-button" class="audition-button" data-tooltip="Spend 1 life to preview">
+                                    Audition −1
+                                </button>
+                            </div>
+                            
+                            <button id="submit-guess" class="submit-button" disabled data-tooltip="Lock in answer">Submit</button>
                         </div>
-                        
-                        <button id="submit-guess" class="submit-button" disabled data-tooltip="Lock in answer">Submit</button>
                     </div>
 
                     <div id="results" class="hidden">

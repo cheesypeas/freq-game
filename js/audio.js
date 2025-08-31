@@ -15,6 +15,7 @@ class AudioManager {
         // Audio state
         this.isPlaying = false;
         this.currentSource = null;
+        this.bypass = false; // when true, play dry
         
         // Initialize audio context and effects engine
         this.initAudioContext();
@@ -223,8 +224,8 @@ class AudioManager {
             // Stop any currently playing audio
             this.stopAllAudio();
 
-            // Play through effects engine
-            const success = this.effectsEngine.playAudio();
+            // Play through effects engine or dry depending on bypass
+            const success = this.bypass ? await this.playDrySample() : this.effectsEngine.playAudio();
             if (success) {
                 this.isPlaying = true;
                 console.log('Playing effected audio');
@@ -347,6 +348,17 @@ class AudioManager {
         }
         
         this.isPlaying = false;
+    }
+
+    /**
+     * Toggle bypass mode
+     */
+    setBypass(isBypassed) {
+        this.bypass = !!isBypassed;
+    }
+
+    getBypass() {
+        return this.bypass;
     }
 
     /**

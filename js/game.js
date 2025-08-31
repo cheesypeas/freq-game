@@ -225,9 +225,6 @@ class SuperfreqGame {
         
         this.userGuess = value;
         this.updateParameterDisplay(value);
-        
-        // Update the audio effect in real-time
-        this.audioManager.updateMainParameter(value);
     }
 
     /**

@@ -346,6 +346,28 @@ body.theme-dark .submit-button::after {
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #7cf07c 0%, #2dc62d 50%, #0a7a0a 100%);
     box-shadow: 0 0 8px rgba(124, 240, 124, 0.6);
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+}
+
+/* Show LED only on active/playing/focus states */
+body.theme-dark .audio-button.is-playing::after,
+body.theme-dark .audition-button.is-playing::after,
+body.theme-dark .submit-button.is-armed::after,
+body.theme-dark .audio-button:active::after,
+body.theme-dark .audition-button:active::after,
+body.theme-dark .submit-button:active::after,
+body.theme-dark .audio-button:focus-visible::after,
+body.theme-dark .audition-button:focus-visible::after,
+body.theme-dark .submit-button:focus-visible::after {
+    opacity: 1;
+}
+
+/* Ensure hover keeps label visible */
+body.theme-dark .audio-button:hover,
+body.theme-dark .audition-button:hover,
+body.theme-dark .submit-button:hover {
+    color: #ffffff;
 }
 
 body.theme-dark .audio-button:hover,

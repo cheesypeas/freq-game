@@ -112,6 +112,24 @@ class SuperfreqGame {
             });
         }
 
+        // LED pilot light state from audio layer
+        document.addEventListener('audio:playstart', (e) => {
+            if (e.detail?.kind === 'dry' && this.elements.dryAudio) {
+                this.elements.dryAudio.classList.add('is-playing');
+            }
+            if (e.detail?.kind === 'fx' && this.elements.effectedAudio) {
+                this.elements.effectedAudio.classList.add('is-playing');
+            }
+        });
+        document.addEventListener('audio:playend', (e) => {
+            if (e.detail?.kind === 'dry' && this.elements.dryAudio) {
+                this.elements.dryAudio.classList.remove('is-playing');
+            }
+            if (e.detail?.kind === 'fx' && this.elements.effectedAudio) {
+                this.elements.effectedAudio.classList.remove('is-playing');
+            }
+        });
+
         // Removed global click-to-initialize to avoid autoplay prompts
         // (Previously added click handler on game container)
         

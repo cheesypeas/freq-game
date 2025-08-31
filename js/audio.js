@@ -21,6 +21,109 @@ class AudioManager {
     }
 
     /**
+     * Discover available sample files on the CDN without hardcoding.
+     * Tries multiple strategies in order:
+     * 1) JSON manifest: audio/samples/index.json | samples.json | catalog.json (array of strings or objects { url })
+     * 2) Text index: audio/samples/index.txt (newline-separated)
+     * 3) S3-style listing via XML: audio/samples/?list-type=2 (parses <Key> entries)
+     * Returns an array of absolute URLs.
+     */
+    async discoverSampleCatalog() {
+        const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.CDN_BASE_URL)
+            ? window.APP_CONFIG.CDN_BASE_URL.replace(/\/$/, '') + '/'
+            : '';
+        const prefix = `${baseUrl}audio/samples/`;
+
+        const coerceToAbsolute = (entry) => {
+            if (!entry) return null;
+            // Support { url: string } objects or raw strings
+            const url = typeof entry === 'string' ? entry : (entry.url || entry.href || null);
+            if (!url) return null;
+            // Absolute
+            if (/^https?:\/\//i.test(url)) return url;
+            // Relative
+            return `${prefix}${url.replace(/^\//, '')}`;
+        };
+
+        // 1) JSON manifests
+        const jsonManifestCandidates = [
+            `${prefix}index.json`,
+            `${prefix}samples.json`,
+            `${prefix}catalog.json`
+        ];
+        for (const manifestUrl of jsonManifestCandidates) {
+            try {
+                const res = await fetch(manifestUrl, { cache: 'no-store' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (Array.isArray(data.files) ? data.files : []);
+                const urls = list.map(coerceToAbsolute).filter(Boolean);
+                if (urls.length) {
+                    console.log(`Discovered ${urls.length} samples from manifest:`, manifestUrl);
+                    return urls;
+                }
+            } catch (_) { /* try next */ }
+        }
+
+        // 2) Plain text index (newline-separated)
+        try {
+            const txtUrl = `${prefix}index.txt`;
+            const res = await fetch(txtUrl, { cache: 'no-store' });
+            if (res.ok) {
+                const body = await res.text();
+                const urls = body
+                    .split(/\r?\n/)
+                    .map(s => s.trim())
+                    .filter(Boolean)
+                    .map(coerceToAbsolute)
+                    .filter(Boolean);
+                if (urls.length) {
+                    console.log(`Discovered ${urls.length} samples from text index:`, txtUrl);
+                    return urls;
+                }
+            }
+        } catch (_) { /* continue */ }
+
+        // 3) S3-style listing via XML (if CDN forwards to origin)
+        try {
+            const listUrl = `${prefix}?list-type=2`;
+            const res = await fetch(listUrl, { cache: 'no-store' });
+            if (res.ok) {
+                const xmlText = await res.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'application/xml');
+                const keyNodes = Array.from(xml.getElementsByTagName('Key'));
+                const keys = keyNodes.map(n => n.textContent || '').filter(Boolean);
+                const urls = keys
+                    .filter(k => /\.(wav|mp3|ogg)$/i.test(k))
+                    .map(k => `${baseUrl}${k.replace(/^\//, '')}`);
+                if (urls.length) {
+                    console.log(`Discovered ${urls.length} samples from S3 XML listing`);
+                    return urls;
+                }
+            }
+        } catch (_) { /* continue */ }
+
+        console.warn('No catalog discovered; falling back to single known file if available.');
+        return [];
+    }
+
+    /**
+     * Deterministically pick a sample URL for a given UTC date.
+     * Rotates daily across the discovered catalog.
+     */
+    pickDailySampleUrl(sampleUrls, dateUtc = new Date()) {
+        if (!Array.isArray(sampleUrls) || sampleUrls.length === 0) return null;
+        const y = dateUtc.getUTCFullYear();
+        const m = dateUtc.getUTCMonth();
+        const d = dateUtc.getUTCDate();
+        const midnightUtc = Date.UTC(y, m, d);
+        const dayNumber = Math.floor(midnightUtc / 86400000); // days since epoch
+        const index = ((dayNumber % sampleUrls.length) + sampleUrls.length) % sampleUrls.length;
+        return sampleUrls[index];
+    }
+
+    /**
      * Initialize Web Audio API context
      */
     initAudioContext() {
@@ -57,23 +160,48 @@ class AudioManager {
                 await this.audioContext.resume();
             }
             
-            // Try to load dry sample, fallback to generated audio if file not found
+            // Discover available samples and pick one based on the day
             let success = false;
             try {
-                // Check if the URL is accessible first (temporarily force a single test file)
-                const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.CDN_BASE_URL) ? window.APP_CONFIG.CDN_BASE_URL.replace(/\/$/, '') + '/' : '';
-                const forcedUrl = `${baseUrl}audio/samples/vocals_day001.wav`;
-                // const response = await fetch(puzzleData.drySample);
-                const response = await fetch(forcedUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const catalog = await this.discoverSampleCatalog();
+                let selectedUrl = this.pickDailySampleUrl(catalog);
+
+                // If selection failed or fetch fails, iterate through catalog starting from today's index
+                let attempts = 0;
+                while (!success && attempts < Math.max(1, catalog.length)) {
+                    if (!selectedUrl && catalog.length) {
+                        selectedUrl = catalog[attempts % catalog.length];
+                    }
+                    if (!selectedUrl) break;
+
+                    try {
+                        const response = await fetch(selectedUrl, { cache: 'no-store' });
+                        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        const arrayBuffer = await response.arrayBuffer();
+                        success = await this.effectsEngine.loadDrySampleFromBuffer(arrayBuffer);
+                        if (success) {
+                            console.log('Loaded daily sample:', selectedUrl);
+                            break;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to load selected sample, trying next:', selectedUrl, e.message);
+                        // Move to next item deterministically
+                        const y = new Date().getUTCFullYear();
+                        const m = new Date().getUTCMonth();
+                        const d = new Date().getUTCDate();
+                        const midnightUtc = Date.UTC(y, m, d);
+                        const dayNumber = Math.floor(midnightUtc / 86400000);
+                        const nextIndex = ((dayNumber + attempts + 1) % (catalog.length || 1));
+                        selectedUrl = catalog[nextIndex];
+                        attempts++;
+                    }
                 }
-                
-                const arrayBuffer = await response.arrayBuffer();
-                // Pass the array buffer directly to the effects engine
-                success = await this.effectsEngine.loadDrySampleFromBuffer(arrayBuffer);
+
+                if (!success) {
+                    throw new Error('No samples could be loaded from catalog');
+                }
             } catch (fileError) {
-                console.warn('Audio file not found or inaccessible, generating test audio:', fileError.message);
+                console.warn('Audio sample discovery/load failed; generating test audio:', fileError.message);
                 success = await this.generateTestAudio();
             }
             

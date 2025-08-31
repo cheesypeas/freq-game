@@ -19,6 +19,12 @@
 
         <main>
             <div id="game-container">
+                <div class="plugin-header" aria-hidden="true">
+                    <div class="screw left"></div>
+                    <div class="brand">superfreq</div>
+                    <div class="led" id="power-led"></div>
+                    <div class="screw right"></div>
+                </div>
                 <!-- Game state will be managed by JavaScript -->
                 <div id="loading" class="hidden" aria-live="polite">Loading…</div>
 
@@ -51,16 +57,19 @@
                         <h3>Set</h3>
                         <div id="parameter-input">
                             <label for="parameter-slider" id="parameter-label"></label>
-                            <div class="slider-container">
-                                <input type="range" id="parameter-slider" min="0" max="100" step="1">
-                                <div class="slider-labels">
-                                    <span class="min-label"></span>
-                                    <span class="max-label"></span>
+                            <div class="control-row">
+                                <div class="knob-group">
+                                    <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
+                                    <div class="knob-labels">
+                                        <span class="min-label"></span>
+                                        <span class="max-label"></span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="parameter-display">
-                                <span id="parameter-value"></span>
-                                <span id="parameter-unit"></span>
+                                <input class="visually-hidden" type="range" id="parameter-slider" min="0" max="100" step="1">
+                                <div class="parameter-display">
+                                    <span id="parameter-value"></span>
+                                    <span id="parameter-unit"></span>
+                                </div>
                             </div>
                         </div>
                         
@@ -96,6 +105,7 @@
     <script src="js/effects.js"></script>
     <script src="js/puzzles.js"></script>
     <script src="js/audio.js"></script>
+    <script src="js/knob.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

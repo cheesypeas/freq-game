@@ -874,6 +874,104 @@ a {
 	border: 1px solid var(--border);
 }
 
+/* =============================
+   Transport (Play/Pause + Bypass)
+   ============================= */
+.transport {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.transport-button {
+    background: #242b36;
+    color: #e6edf3;
+    border: 1px solid #2a2f3a;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+.transport-button:hover { background: #2b3340; }
+.transport-button:active { transform: translateY(1px); }
+.transport-button.play.is-playing { background: #334155; }
+
+.transport-button.bypass[aria-pressed="true"] {
+    background: #3a1f1f;
+    border-color: #5b2a2a;
+    color: #ffb4bd;
+}
+
+.transport-status { justify-self: end; }
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #2a2f3a;
+    background: #1e2530;
+    color: #9aa4b2;
+    font-size: 0.8rem;
+}
+
+/* =============================
+   Plugin Parameters Panel
+   ============================= */
+#plugin-panel { display: grid; gap: 1rem; }
+
+.parameters-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.parameter-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+.parameter-card .parameter-title { margin-bottom: 0.5rem; }
+
+.fixed-params {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(80px, 1fr));
+    gap: 0.75rem;
+}
+
+.fixed-param {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.fixed-param .knob { cursor: default; }
+.fixed-param .value { font-size: 0.85rem; color: #666; }
+
+/* Dark theme variants for transport and panels */
+.theme-dark .transport-button { background: #1f2732; border-color: var(--border); }
+.theme-dark .transport-button:hover { background: #263041; }
+.theme-dark .transport-button.play.is-playing { background: #2a3647; }
+.theme-dark .transport-button.bypass[aria-pressed="true"] { background: #3a1f1f; border-color: #5b2a2a; color: #ffb4bd; }
+.theme-dark .badge { background: var(--panel-alt); border-color: var(--border); color: var(--muted); }
+.theme-dark #plugin-panel .parameter-card { background: var(--panel-alt); border-color: var(--border); }
+.theme-dark .fixed-param .value { color: var(--muted); }
+
+/* Responsive tweaks for plugin layout */
+@media (max-width: 768px) {
+    .parameters-panel { grid-template-columns: 1fr; }
+    .fixed-params { grid-template-columns: repeat(3, 1fr); }
+    .transport-button,
+    .audition-button,
+    .submit-button { min-width: 100%; margin-bottom: 1rem; }
+}
+
 .theme-dark .autoplay-message h3 {
 	color: var(--accent);
 }

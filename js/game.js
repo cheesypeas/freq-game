@@ -50,12 +50,14 @@ class SuperfreqGame {
             puzzleInfo: document.getElementById('puzzle-info'),
             effectDescription: document.getElementById('effect-description'),
             effectTitle: document.getElementById('effect-title'),
-            dryAudio: document.getElementById('dry-audio'),
-            effectedAudio: document.getElementById('effected-audio'),
+            playPause: document.getElementById('play-pause'),
+            bypass: document.getElementById('bypass'),
+            transportMode: document.getElementById('transport-mode'),
             parameterLabel: document.getElementById('parameter-label'),
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
             parameterUnit: document.getElementById('parameter-unit'),
+            fixedParams: document.getElementById('fixed-params'),
             auditionButton: document.getElementById('audition-button'),
             livesDisplay: document.getElementById('lives-display'),
             submitGuess: document.getElementById('submit-guess'),
@@ -88,18 +90,19 @@ class SuperfreqGame {
             this.submitGuess();
         });
 
-        // Audio controls - these will trigger audio initialization
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.addEventListener('click', async () => {
+        // Transport controls
+        if (this.elements.playPause) {
+            this.elements.playPause.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playDrySample();
+                this.togglePlayPause();
             });
         }
 
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.addEventListener('click', async () => {
+        if (this.elements.bypass) {
+            this.elements.bypass.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playEffectedAudio();
+                const isActive = this.elements.bypass.getAttribute('aria-pressed') === 'true';
+                this.setBypass(!isActive);
             });
         }
 
@@ -129,6 +132,8 @@ class SuperfreqGame {
             
             // Load puzzle audio with real-time effects
             await this.audioManager.loadPuzzleAudio(this.currentPuzzle);
+            // After engine is ready, update fixed parameter displays from engine
+            this.updateFixedParamDisplays();
             
             // Update lives display
             this.remainingLives = this.currentPuzzle.livesAllocated || 5;
@@ -206,13 +211,21 @@ class SuperfreqGame {
         const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
         
-        // Update audio button labels
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.textContent = '▶︎ Dry';
+        // Set transport defaults
+        if (this.elements.playPause) {
+            this.elements.playPause.textContent = '▶︎ Play';
+            this.elements.playPause.classList.remove('is-playing');
         }
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.textContent = '▶︎ FX';
+        if (this.elements.bypass) {
+            this.elements.bypass.setAttribute('aria-pressed', 'false');
+            this.elements.bypass.textContent = 'Bypass Off';
         }
+        if (this.elements.transportMode) {
+            this.elements.transportMode.textContent = 'FX';
+        }
+        
+        // Render fixed parameters panel
+        this.renderFixedParameters();
         
         // Enable submit button
         this.elements.submitGuess.disabled = false;
@@ -311,6 +324,185 @@ class SuperfreqGame {
             console.error('Error playing effected audio:', error);
             this.showError('Error playing effected audio. Please try again.');
         }
+    }
+
+    /**
+     * Transport: toggle play/pause honoring bypass
+     */
+    async togglePlayPause() {
+        try {
+            if (this.audioManager.isPlaying) {
+                this.audioManager.stopAllAudio();
+                this.updateTransportUI(false);
+                return;
+            }
+            // If bypass is on, play dry, else play effected (with hidden correct value)
+            const success = this.audioManager.getBypass()
+                ? await this.audioManager.playDrySample()
+                : await this.audioManager.playCurrentSettings();
+            if (success) {
+                this.updateTransportUI(true);
+            } else {
+                this.showError('Failed to start playback.');
+            }
+        } catch (e) {
+            console.error('togglePlayPause error', e);
+            this.showError('Playback error.');
+        }
+    }
+
+    /**
+     * Transport: set bypass and reflect in UI
+     */
+    setBypass(on) {
+        this.audioManager.setBypass(on);
+        if (this.elements.bypass) {
+            this.elements.bypass.setAttribute('aria-pressed', on ? 'true' : 'false');
+            this.elements.bypass.textContent = on ? 'Bypass On' : 'Bypass Off';
+        }
+        if (this.elements.transportMode) {
+            this.elements.transportMode.textContent = on ? 'Dry' : 'FX';
+        }
+        // If currently playing, restart to reflect mode change
+        if (this.audioManager.isPlaying) {
+            this.audioManager.stopAllAudio();
+            this.togglePlayPause();
+        }
+    }
+
+    updateTransportUI(isPlaying) {
+        if (!this.elements.playPause) return;
+        this.elements.playPause.classList.toggle('is-playing', !!isPlaying);
+        this.elements.playPause.textContent = isPlaying ? '⏸ Pause' : '▶︎ Play';
+    }
+
+    /**
+     * Build the fixed parameters UI (read-only knobs and value labels)
+     */
+    renderFixedParameters() {
+        if (!this.elements.fixedParams) return;
+        const fixedNames = this.getFixedParamNames();
+        const container = this.elements.fixedParams;
+        container.innerHTML = '';
+        fixedNames.forEach((name) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'fixed-param';
+            wrapper.setAttribute('data-param', name);
+            // Label
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = name;
+            // Knob visual (non-interactive)
+            const knob = document.createElement('div');
+            knob.className = 'knob';
+            knob.setAttribute('aria-hidden', 'true');
+            // Value
+            const valueEl = document.createElement('div');
+            valueEl.className = 'value';
+            valueEl.id = `fixed-value-${name}`;
+            valueEl.textContent = '—';
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(knob);
+            wrapper.appendChild(valueEl);
+            container.appendChild(wrapper);
+        });
+        this.updateFixedParamDisplays();
+    }
+
+    /**
+     * Determine which params are fixed (all except the main guessable param)
+     */
+    getFixedParamNames() {
+        if (!this.currentPuzzle) return [];
+        const ranges = this.audioManager.getEffectParameterRanges();
+        const all = Object.keys(ranges || {});
+        const main = this.currentPuzzle.parameter;
+        return all.filter((n) => n !== main);
+    }
+
+    /**
+     * Update the numeric displays for fixed params from the engine/presets
+     */
+    updateFixedParamDisplays() {
+        if (!this.currentPuzzle) return;
+        const effectType = this.currentPuzzle.effectType;
+        const fixedNames = this.getFixedParamNames();
+        const ranges = this.audioManager.getEffectParameterRanges();
+        fixedNames.forEach((name) => {
+            const el = document.getElementById(`fixed-value-${name}`);
+            if (!el) return;
+            const raw = this.getCurrentParamValue(name);
+            const formatted = this.formatFixedParamValue(effectType, name, raw);
+            el.textContent = formatted;
+            // Update knob rotation visual
+            const wrapper = el.parentElement;
+            const knob = wrapper ? wrapper.querySelector('.knob') : null;
+            if (knob && ranges && ranges[name]) {
+                const [min, max] = ranges[name];
+                const clamped = Math.max(min, Math.min(max, raw));
+                const percent = (clamped - min) / (max - min || 1);
+                const angle = -135 + percent * 270;
+                knob.style.setProperty('--knob-rotation', angle + 'deg');
+            }
+        });
+    }
+
+    /**
+     * Read current value for a parameter; fall back to presets if engine not ready
+     */
+    getCurrentParamValue(name) {
+        try {
+            if (this.audioManager.effectsEngine && this.audioManager.effectsEngine.currentEffectChain) {
+                const params = this.audioManager.effectsEngine.currentEffectChain.params || {};
+                if (params[name]) {
+                    return params[name].value;
+                }
+            }
+        } catch (_) {}
+        // Fallback to preset
+        const presets = this.currentPuzzle.effectPresets?.[this.currentPuzzle.effectType] || {};
+        return presets[name];
+    }
+
+    /**
+     * Format fixed parameter values with sensible units per effect/param
+     */
+    formatFixedParamValue(effectType, name, value) {
+        if (value == null || Number.isNaN(value)) return '—';
+        let v = value;
+        let suffix = '';
+        // Normalize units
+        if (effectType === 'delay' && name === 'time') {
+            // engine stores seconds
+            v = Math.round(v * 1000);
+            suffix = ' ms';
+        } else if (effectType === 'reverb' && name === 'wetMix') {
+            // engine uses 0..1 gain
+            v = Math.round(v * 100);
+            suffix = ' %';
+        } else if (['compression'].includes(effectType) && (name === 'attack' || name === 'release')) {
+            v = Math.round(v * 1000);
+            suffix = ' ms';
+        } else if (effectType === 'eq' && name === 'gain') {
+            v = Math.round(v * 10) / 10;
+            suffix = ' dB';
+        } else if ((effectType === 'filter' && name === 'frequency') || (effectType === 'eq' && name === 'frequency')) {
+            v = Math.round(v);
+            suffix = ' Hz';
+        } else if (name === 'ratio') {
+            v = Math.round(v * 10) / 10;
+            suffix = ':';
+        } else if (name === 'q') {
+            v = Math.round(v * 100) / 100;
+        } else if (name === 'feedback') {
+            v = Math.round(v * 100);
+            suffix = ' %';
+        } else if (name === 'rate') {
+            v = Math.round(v * 100) / 100;
+            suffix = ' Hz';
+        }
+        return `${v}${suffix}`;
     }
 
     /**

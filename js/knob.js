@@ -40,6 +40,7 @@
         }
 
         knob.addEventListener('mousedown', (e) => {
+            if (knob.classList.contains('disabled') || input.disabled) return;
             isDragging = true;
             startY = e.clientY;
             startValue = parseFloat(input.value || '50');
@@ -64,6 +65,7 @@
 
         // Touch support
         knob.addEventListener('touchstart', (e) => {
+            if (knob.classList.contains('disabled') || input.disabled) return;
             const t = e.touches[0];
             if (!t) return;
             isDragging = true;
@@ -92,6 +94,7 @@
 
         // Keyboard support for accessibility
         knob.addEventListener('keydown', (e) => {
+            if (knob.classList.contains('disabled') || input.disabled) return;
             const step = parseFloat(input.step || '1');
             const range = parseFloat(input.max) - parseFloat(input.min);
             const fine = range / 100; // fine step with Shift

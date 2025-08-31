@@ -50,8 +50,8 @@ class SuperfreqGame {
             puzzleInfo: document.getElementById('puzzle-info'),
             effectDescription: document.getElementById('effect-description'),
             effectTitle: document.getElementById('effect-title'),
-            dryAudio: document.getElementById('dry-audio'),
-            effectedAudio: document.getElementById('effected-audio'),
+            transportPlay: document.getElementById('transport-play'),
+            bypassToggle: document.getElementById('bypass-toggle'),
             parameterLabel: document.getElementById('parameter-label'),
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
@@ -62,7 +62,8 @@ class SuperfreqGame {
             results: document.getElementById('results'),
             scoreDisplay: document.getElementById('score-display'),
             correctAnswer: document.getElementById('correct-answer'),
-            explanation: document.getElementById('explanation')
+            explanation: document.getElementById('explanation'),
+            fixedParams: document.getElementById('fixed-parameter-knobs')
         };
     }
 
@@ -88,18 +89,20 @@ class SuperfreqGame {
             this.submitGuess();
         });
 
-        // Audio controls - these will trigger audio initialization
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.addEventListener('click', async () => {
+        // Transport: Play/Pause
+        if (this.elements.transportPlay) {
+            this.elements.transportPlay.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playDrySample();
+                this.togglePlayPause();
             });
         }
 
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.addEventListener('click', async () => {
+        // Bypass toggle
+        if (this.elements.bypassToggle) {
+            this.elements.bypassToggle.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playEffectedAudio();
+                const isBypassed = this.audioManager.toggleBypass();
+                this.updateBypassUI(isBypassed);
             });
         }
 
@@ -206,13 +209,12 @@ class SuperfreqGame {
         const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
         
-        // Update audio button labels
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.textContent = '▶︎ Dry';
-        }
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.textContent = '▶︎ FX';
-        }
+        // Initialize transport UI
+        this.updatePlayButton(false);
+        this.updateBypassUI(false);
+
+        // Render fixed parameter knobs for non-guessable params
+        this.renderFixedParameterKnobs();
         
         // Enable submit button
         this.elements.submitGuess.disabled = false;
@@ -240,6 +242,8 @@ class SuperfreqGame {
             this.currentPuzzle.unit
         );
         this.elements.parameterValue.textContent = formattedValue;
+        // Update audio engine main parameter in real-time for FX preview
+        this.audioManager.updateMainParameter(value);
     }
 
     /**
@@ -310,6 +314,87 @@ class SuperfreqGame {
         } catch (error) {
             console.error('Error playing effected audio:', error);
             this.showError('Error playing effected audio. Please try again.');
+        }
+    }
+
+    /**
+     * Toggle transport play/pause
+     */
+    async togglePlayPause() {
+        if (this.audioManager.getIsPlaying()) {
+            this.audioManager.stopAllAudio();
+            this.updatePlayButton(false);
+            return;
+        }
+
+        // Decide between dry or effected based on bypass
+        const isBypassed = this.audioManager.getBypassState();
+        const success = isBypassed
+            ? await this.audioManager.playDrySample()
+            : await this.audioManager.playCurrentSettings();
+        if (success) {
+            this.updatePlayButton(true);
+        }
+    }
+
+    updatePlayButton(isPlaying) {
+        if (!this.elements.transportPlay) return;
+        this.elements.transportPlay.textContent = isPlaying ? '❚❚ Pause' : '▶︎ Play';
+    }
+
+    updateBypassUI(isBypassed) {
+        if (!this.elements.bypassToggle) return;
+        this.elements.bypassToggle.setAttribute('aria-pressed', String(isBypassed));
+        this.elements.bypassToggle.textContent = isBypassed ? 'Bypass On' : 'Bypass Off';
+        this.elements.bypassToggle.classList.toggle('active', isBypassed);
+    }
+
+    renderFixedParameterKnobs() {
+        if (!this.elements.fixedParams) return;
+        const effectType = this.currentPuzzle.effectType;
+        const mainParam = this.currentPuzzle.parameter;
+        const presets = this.currentPuzzle.effectPresets?.[effectType] || {};
+        const ranges = this.audioManager.getEffectParameterRanges();
+        const container = this.elements.fixedParams;
+        container.innerHTML = '';
+
+        // Build knobs for each preset param except the main guessable param
+        Object.entries(presets).forEach(([param, value]) => {
+            if (param === mainParam) return;
+            const range = ranges[param] || [0, 1];
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'fixed-knob';
+            wrapper.innerHTML = `
+                <div class="knob-group">
+                    <div class="knob" id="fixed-${param}-knob" aria-label="${param}" tabindex="-1"></div>
+                    <div class="knob-caption">${param}</div>
+                </div>
+                <input class="visually-hidden" type="range" id="fixed-${param}-slider" min="0" max="100" step="1" disabled>
+            `;
+            container.appendChild(wrapper);
+
+            // Initialize knob visual using the existing knob helper (read-only)
+            try {
+                this.initKnobVisual(`fixed-${param}-knob`, `fixed-${param}-slider`, value, range);
+            } catch (e) {
+                console.warn('Failed to init fixed knob', param, e);
+            }
+        });
+    }
+
+    initKnobVisual(knobId, sliderId, value, [min, max]) {
+        const slider = document.getElementById(sliderId);
+        if (!slider) return;
+        // Map value to 0..100
+        const percent = ((value - min) / (max - min)) * 100;
+        slider.value = String(Math.max(0, Math.min(100, percent)));
+        // Let knob.js sync render via input listener
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+        const knob = document.getElementById(knobId);
+        if (knob) {
+            knob.classList.add('disabled');
+            knob.setAttribute('aria-disabled', 'true');
         }
     }
 

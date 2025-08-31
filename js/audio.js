@@ -15,6 +15,7 @@ class AudioManager {
         // Audio state
         this.isPlaying = false;
         this.currentSource = null;
+        this.bypassed = false;
         
         // Initialize audio context and effects engine
         this.initAudioContext();
@@ -383,9 +384,7 @@ class AudioManager {
     /**
      * Check if audio is currently playing
      */
-    isPlaying() {
-        return this.isPlaying;
-    }
+    getIsPlaying() { return this.isPlaying; }
 
     /**
      * Get current puzzle data
@@ -485,6 +484,14 @@ class AudioManager {
         this.effectsEngine = null;
         this.currentPuzzle = null;
     }
+
+    // Transport/bypass helpers
+    toggleBypass() {
+        this.bypassed = !this.bypassed;
+        return this.bypassed;
+    }
+
+    getBypassState() { return this.bypassed; }
 
     /**
      * Get loading status

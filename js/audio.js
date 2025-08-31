@@ -252,20 +252,26 @@ class AudioManager {
         }
 
         try {
-            // Update the effect parameter
             const effectType = this.currentPuzzle.effectType;
-            const params = { [parameterName]: value };
-            
-            // Update effect parameters in real-time
-            this.effectsEngine.updateEffectParameters(effectType, params);
-            
-            // Play the audio with new parameters
+
+            // Temporarily apply user's value
+            this.effectsEngine.updateEffectParameters(effectType, { [parameterName]: value });
+
+            // Play with the temporary value
             const success = await this.playEffectedAudio();
             
             if (success) {
                 // Deduct a life
                 this.remainingLives--;
                 console.log(`Parameter auditioned: ${parameterName} = ${value}. Lives remaining: ${this.remainingLives}`);
+
+                try {
+                    // Restore hidden correct value after playback ends
+                    const correctValue = this.currentPuzzle.correctValue;
+                    this.effectsEngine.updateEffectParameters(effectType, { [parameterName]: correctValue });
+                } catch (restoreError) {
+                    console.warn('Failed to restore hidden value after audition:', restoreError);
+                }
                 return true;
             }
             
@@ -311,7 +317,20 @@ class AudioManager {
             return false;
         }
 
-        return await this.playEffectedAudio();
+        try {
+            // Always enforce hidden correct value for effected playback
+            if (this.currentPuzzle) {
+                const effectType = this.currentPuzzle.effectType;
+                const parameterName = this.currentPuzzle.parameter;
+                const correctValue = this.currentPuzzle.correctValue;
+                this.effectsEngine.updateEffectParameters(effectType, { [parameterName]: correctValue });
+            }
+
+            return await this.playEffectedAudio();
+        } catch (error) {
+            console.error('Failed to play with hidden value:', error);
+            return false;
+        }
     }
 
     /**

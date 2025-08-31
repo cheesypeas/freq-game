@@ -152,6 +152,9 @@ class AudioEffectsEngine {
                 console.log('Audio playback ended');
                 this.isPlaying = false;
                 this.currentSource = null;
+                try {
+                    document.dispatchEvent(new CustomEvent('audio:playend', { detail: { kind: 'fx' } }));
+                } catch (e) {}
             };
 
             console.log('Audio playback started successfully');

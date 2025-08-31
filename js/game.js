@@ -19,6 +19,7 @@ class SuperfreqGame {
         
         // DOM elements
         this.elements = {};
+        this.knobDragging = false;
         
         this.init();
     }
@@ -56,6 +57,7 @@ class SuperfreqGame {
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
             parameterUnit: document.getElementById('parameter-unit'),
+            parameterKnob: document.getElementById('parameter-knob'),
             auditionButton: document.getElementById('audition-button'),
             livesDisplay: document.getElementById('lives-display'),
             submitGuess: document.getElementById('submit-guess'),
@@ -73,7 +75,14 @@ class SuperfreqGame {
         // Parameter slider
         this.elements.parameterSlider.addEventListener('input', (e) => {
             this.handleParameterChange(e.target.value);
+            this.updateKnobFromSlider();
         });
+
+        // Knob interactions
+        if (this.elements.parameterKnob) {
+            this.elements.parameterKnob.addEventListener('pointerdown', (e) => this.onKnobPointerDown(e));
+            this.elements.parameterKnob.addEventListener('keydown', (e) => this.onKnobKeyDown(e));
+        }
 
         // Audition button
         if (this.elements.auditionButton) {
@@ -102,6 +111,24 @@ class SuperfreqGame {
                 this.playEffectedAudio();
             });
         }
+
+        // LED pilot light state from audio layer
+        document.addEventListener('audio:playstart', (e) => {
+            if (e.detail?.kind === 'dry' && this.elements.dryAudio) {
+                this.elements.dryAudio.classList.add('is-playing');
+            }
+            if (e.detail?.kind === 'fx' && this.elements.effectedAudio) {
+                this.elements.effectedAudio.classList.add('is-playing');
+            }
+        });
+        document.addEventListener('audio:playend', (e) => {
+            if (e.detail?.kind === 'dry' && this.elements.dryAudio) {
+                this.elements.dryAudio.classList.remove('is-playing');
+            }
+            if (e.detail?.kind === 'fx' && this.elements.effectedAudio) {
+                this.elements.effectedAudio.classList.remove('is-playing');
+            }
+        });
 
         // Removed global click-to-initialize to avoid autoplay prompts
         // (Previously added click handler on game container)
@@ -202,9 +229,25 @@ class SuperfreqGame {
         this.elements.parameterSlider.max = '100';
         this.elements.parameterSlider.value = '50';
         
+        // Set min/max scale labels under knob
+        const minLabelEl = document.querySelector('.min-label');
+        const maxLabelEl = document.querySelector('.max-label');
+        if (minLabelEl && maxLabelEl) {
+            // Use formatted values matching units
+            const minFormatted = this.puzzleSystem.formatParameterValue(effect.minValue, effect.unit);
+            const maxFormatted = this.puzzleSystem.formatParameterValue(effect.maxValue, effect.unit);
+            minLabelEl.textContent = minFormatted;
+            maxLabelEl.textContent = maxFormatted;
+        }
+
         // Set initial parameter value display
         const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
+        this.updateKnobFromSlider();
+        if (this.elements.parameterKnob) {
+            this.elements.parameterKnob.setAttribute('aria-label', `${effect.parameter}`);
+            this.elements.parameterKnob.setAttribute('aria-valuenow', this.elements.parameterSlider.value);
+        }
         
         // Update audio button labels
         if (this.elements.dryAudio) {
@@ -229,6 +272,102 @@ class SuperfreqGame {
         
         this.userGuess = value;
         this.updateParameterDisplay(value);
+        if (this.elements.parameterKnob) {
+            this.elements.parameterKnob.setAttribute('aria-valuenow', String(Math.round(parseFloat(sliderValue))));
+        }
+    }
+
+    /**
+     * Sync knob visual with slider percent (0-100)
+     */
+    updateKnobFromSlider() {
+        if (!this.elements.parameterKnob || !this.elements.parameterSlider) return;
+        const percent = parseFloat(this.elements.parameterSlider.value);
+        const angle = this.percentToAngle(percent);
+        this.elements.parameterKnob.style.setProperty('--knob-rotation', `${angle}deg`);
+    }
+
+    /**
+     * Map percent [0..100] to rotation angle [-135..135]
+     */
+    percentToAngle(percent) {
+        const min = -135;
+        const max = 135;
+        return min + (max - min) * (percent / 100);
+    }
+
+    /**
+     * Map angle [-135..135] to percent [0..100]
+     */
+    angleToPercent(angle) {
+        const min = -135;
+        const max = 135;
+        const clamped = Math.max(min, Math.min(max, angle));
+        return ((clamped - min) / (max - min)) * 100;
+    }
+
+    onKnobPointerDown(e) {
+        if (!this.elements.parameterKnob) return;
+        e.preventDefault();
+        this.knobDragging = true;
+        this.elements.parameterKnob.setPointerCapture(e.pointerId);
+        const move = (ev) => this.onKnobPointerMove(ev);
+        const up = (ev) => this.onKnobPointerUp(ev, move, up);
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up, { once: true });
+        this.onKnobPointerMove(e);
+    }
+
+    onKnobPointerMove(e) {
+        if (!this.knobDragging || !this.elements.parameterKnob) return;
+        const rect = this.elements.parameterKnob.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90; // 0 at top
+        // Normalize to [-180,180]
+        if (angle > 180) angle -= 360;
+        // Clamp to sweep
+        const percent = this.angleToPercent(angle);
+        this.setSliderFromPercent(percent);
+    }
+
+    onKnobPointerUp(e, move, up) {
+        this.knobDragging = false;
+        window.removeEventListener('pointermove', move);
+        // pointerup listener is once:true
+    }
+
+    onKnobKeyDown(e) {
+        if (!this.elements.parameterSlider) return;
+        const step = e.shiftKey ? 10 : 1;
+        let value = parseFloat(this.elements.parameterSlider.value);
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            value = Math.min(100, value + step);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+            value = Math.max(0, value - step);
+        } else {
+            return;
+        }
+        e.preventDefault();
+        this.elements.parameterSlider.value = String(Math.round(value));
+        this.handleParameterChange(this.elements.parameterSlider.value);
+        this.updateKnobFromSlider();
+        if (this.elements.parameterKnob) {
+            this.elements.parameterKnob.setAttribute('aria-valuenow', this.elements.parameterSlider.value);
+        }
+    }
+
+    setSliderFromPercent(percent) {
+        const clamped = Math.max(0, Math.min(100, percent));
+        const rounded = Math.round(clamped);
+        this.elements.parameterSlider.value = String(rounded);
+        this.handleParameterChange(this.elements.parameterSlider.value);
+        this.updateKnobFromSlider();
+        if (this.elements.parameterKnob) {
+            this.elements.parameterKnob.setAttribute('aria-valuenow', String(rounded));
+        }
     }
 
     /**

@@ -190,10 +190,18 @@ class AudioManager {
             this.currentSource = source;
             this.isPlaying = true;
 
+            // Emit play start event (dry)
+            try {
+                document.dispatchEvent(new CustomEvent('audio:playstart', { detail: { kind: 'dry' } }));
+            } catch (e) {}
+
             // Set up end callback
             source.onended = () => {
                 this.isPlaying = false;
                 this.currentSource = null;
+                try {
+                    document.dispatchEvent(new CustomEvent('audio:playend', { detail: { kind: 'dry' } }));
+                } catch (e) {}
             };
 
             console.log('Playing dry sample');
@@ -228,6 +236,9 @@ class AudioManager {
             if (success) {
                 this.isPlaying = true;
                 console.log('Playing effected audio');
+                try {
+                    document.dispatchEvent(new CustomEvent('audio:playstart', { detail: { kind: 'fx' } }));
+                } catch (e) {}
             }
             return success;
 

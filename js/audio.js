@@ -63,6 +63,7 @@ class AudioManager {
                 // Check if the URL is accessible first (temporarily force a single test file)
                 const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.CDN_BASE_URL) ? window.APP_CONFIG.CDN_BASE_URL.replace(/\/$/, '') + '/' : '';
                 const forcedUrl = `${baseUrl}audio/samples/vocals_day001.wav`;
+                // const response = await fetch(puzzleData.drySample);
                 const response = await fetch(forcedUrl);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);

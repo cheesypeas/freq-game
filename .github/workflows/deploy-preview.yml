@@ -23,11 +23,9 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Download Pages artifact from triggering run
-        uses: actions/download-artifact@v4
+        uses: actions/download-pages-artifact@v3
         with:
-          name: github-pages
           run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: deploy
         name: Deploy to GitHub Pages

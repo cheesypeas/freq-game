@@ -14,45 +14,41 @@
     <div id="app">
         <header>
             <h1>superfreq</h1>
-            <p class="subtitle">Daily Audio Production Puzzle</p>
+            <p class="subtitle">Audio Puzzle</p>
         </header>
 
         <main>
             <div id="game-container">
                 <!-- Game state will be managed by JavaScript -->
-                <div id="loading" class="hidden">
-                    <p>Loading today's puzzle...</p>
-                </div>
+                <div id="loading" class="hidden" aria-live="polite">Loading…</div>
 
                 <div id="game" class="hidden">
                     <div id="puzzle-info">
-                        <h2>Today's Challenge</h2>
-                        <p id="effect-description"></p>
-                        <div id="lives-display" class="lives-counter">
-                            Lives: ❤️❤️❤️❤️❤️ (5)
+                        <div class="info-row">
+                            <h2 id="effect-title">Challenge</h2>
+                            <div id="lives-display" class="lives-counter" data-tooltip="Auditions left"></div>
                         </div>
+                        <p id="effect-description"></p>
                     </div>
 
                     <div id="audio-section">
                         <div id="dry-sample">
-                            <h3>Original Sample</h3>
-                            <button id="dry-audio" class="audio-button">
-                                🎵 Play Dry Sample
+                            <h3>Dry</h3>
+                            <button id="dry-audio" class="audio-button" data-tooltip="Play original">
+                                ▶︎ Dry
                             </button>
-                            <p class="audio-tip">Listen to the original audio to understand the base sound</p>
                         </div>
 
                         <div id="effected-sample">
-                            <h3>Effected Version</h3>
-                            <button id="effected-audio" class="audio-button">
-                                🎛️ Play with Current Settings
+                            <h3>FX</h3>
+                            <button id="effected-audio" class="audio-button" data-tooltip="Play with current setting">
+                                ▶︎ FX
                             </button>
-                            <p class="audio-tip">Hear how your current parameter setting affects the audio</p>
                         </div>
                     </div>
 
                     <div id="guess-section">
-                        <h3>Make Your Guess</h3>
+                        <h3>Set</h3>
                         <div id="parameter-input">
                             <label for="parameter-slider" id="parameter-label"></label>
                             <div class="slider-container">
@@ -69,13 +65,12 @@
                         </div>
                         
                         <div class="audition-section">
-                            <button id="audition-button" class="audition-button">
-                                🎧 Audition This Setting (Costs 1 Life)
+                            <button id="audition-button" class="audition-button" data-tooltip="Spend 1 life to preview">
+                                Audition −1
                             </button>
-                            <p class="audition-tip">Use this to hear how your current setting sounds before submitting</p>
                         </div>
                         
-                        <button id="submit-guess" class="submit-button" disabled>Submit Final Guess</button>
+                        <button id="submit-guess" class="submit-button" disabled data-tooltip="Lock in answer">Submit</button>
                     </div>
 
                     <div id="results" class="hidden">
@@ -92,7 +87,7 @@
         </main>
 
         <footer>
-            <p>superfreq - Daily Audio Production Puzzle Game</p>
+            <p>superfreq</p>
         </footer>
     </div>
 

@@ -49,6 +49,7 @@ class SuperfreqGame {
             game: document.getElementById('game'),
             puzzleInfo: document.getElementById('puzzle-info'),
             effectDescription: document.getElementById('effect-description'),
+            effectTitle: document.getElementById('effect-title'),
             dryAudio: document.getElementById('dry-audio'),
             effectedAudio: document.getElementById('effected-audio'),
             parameterLabel: document.getElementById('parameter-label'),
@@ -186,9 +187,12 @@ class SuperfreqGame {
         
         // Update puzzle info
         this.elements.effectDescription.textContent = puzzle.description;
+        if (this.elements.effectTitle) {
+            this.elements.effectTitle.textContent = effect.name;
+        }
         
         // Update parameter input
-        this.elements.parameterLabel.textContent = `Guess the ${effect.parameter} value:`;
+        this.elements.parameterLabel.textContent = `${effect.parameter}`;
         this.elements.parameterUnit.textContent = effect.unit;
         
         // Set up slider with proper range
@@ -199,15 +203,15 @@ class SuperfreqGame {
         this.elements.parameterSlider.value = '50';
         
         // Set initial parameter value display
-        const initialValue = this.puzzleSystem.sliderPositionToValue(effect.type, 50);
+        const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
         
         // Update audio button labels
         if (this.elements.dryAudio) {
-            this.elements.dryAudio.textContent = '🎵 Play Dry Sample';
+            this.elements.dryAudio.textContent = '▶︎ Dry';
         }
         if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.textContent = '🎛️ Play with Current Settings';
+            this.elements.effectedAudio.textContent = '▶︎ FX';
         }
         
         // Enable submit button
@@ -274,8 +278,8 @@ class SuperfreqGame {
      */
     updateLivesDisplay() {
         if (this.elements.livesDisplay) {
-            const livesText = '❤️'.repeat(this.remainingLives);
-            this.elements.livesDisplay.textContent = `Lives: ${livesText} (${this.remainingLives})`;
+            const hearts = '❤️'.repeat(Math.max(0, Math.min(5, this.remainingLives)));
+            this.elements.livesDisplay.textContent = `${hearts} x${this.remainingLives}`;
         }
     }
 

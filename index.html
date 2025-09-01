@@ -29,7 +29,7 @@
                 <div id="loading" class="hidden" aria-live="polite">Loading…</div>
 
                 <div id="game" class="hidden">
-                    <div id="puzzle-info">
+                    <div id="puzzle-info" data-module="Info">
                         <div class="info-row">
                             <h2 id="effect-title">Challenge</h2>
                         </div>
@@ -45,7 +45,7 @@
                         </button>
                     </div>
 
-                    <div id="guess-section">
+                    <div id="guess-section" data-module="Set">
                         <h3>Set</h3>
                         <div id="plugin-controls" class="plugin-controls">
                             <div id="fixed-parameters" class="fixed-parameters" aria-label="Fixed parameters"></div>
@@ -55,7 +55,7 @@
                             <label for="parameter-slider" id="parameter-label"></label>
                             <div class="control-row">
                                 <div class="knob-group">
-                                    <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
+                                    <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"><div class="knob-ticks"></div></div>
                                     <div class="knob-labels">
                                         <span class="min-label"></span>
                                         <span class="max-label"></span>
@@ -78,7 +78,7 @@
                         <button id="submit-guess" class="submit-button" disabled data-tooltip="Lock in answer">Submit</button>
                     </div>
 
-                    <div id="results" class="hidden">
+                    <div id="results" class="hidden" data-module="Results">
                         <h3>Results</h3>
                         <div id="score-display" class="score-display"></div>
                         <div id="correct-answer" class="correct-answer"></div>

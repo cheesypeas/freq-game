@@ -13,7 +13,7 @@ class SuperfreqGame {
         this.userGuess = null;
         this.score = null;
         this.streak = 0;
-        this.remainingLives = 5;
+        this.remainingLives = Infinity;
         this.audioInitialized = false; // Flag to track if audio is initialized
         this.initializingAudio = false; // Flag to prevent multiple simultaneous initializations
         
@@ -57,7 +57,6 @@ class SuperfreqGame {
             parameterValue: document.getElementById('parameter-value'),
             parameterUnit: document.getElementById('parameter-unit'),
             auditionButton: document.getElementById('audition-button'),
-            livesDisplay: document.getElementById('lives-display'),
             submitGuess: document.getElementById('submit-guess'),
             results: document.getElementById('results'),
             scoreDisplay: document.getElementById('score-display'),
@@ -107,8 +106,7 @@ class SuperfreqGame {
             });
         }
 
-        // Removed global click-to-initialize to avoid autoplay prompts
-        // (Previously added click handler on game container)
+        
         
     }
 
@@ -134,9 +132,7 @@ class SuperfreqGame {
             // Load puzzle audio with real-time effects
             await this.audioManager.loadPuzzleAudio(this.currentPuzzle);
             
-            // Update lives display
-            this.remainingLives = this.currentPuzzle.livesAllocated || 5;
-            this.updateLivesDisplay();
+            
             
             this.audioInitialized = true;
             console.log('Audio initialization completed successfully');
@@ -169,7 +165,7 @@ class SuperfreqGame {
             // Show the game interface (audio will be loaded on first user interaction)
             this.showGame();
             
-            // Removed audio initialization message (no autoplay prompt)
+            
             
         } catch (error) {
             console.error('Failed to load puzzle:', error);
@@ -180,7 +176,7 @@ class SuperfreqGame {
     /**
      * Show message about audio initialization
      */
-    // Removed showAudioInitMessage: no longer needed
+    
 
     /**
      * Set up the puzzle interface
@@ -331,14 +327,9 @@ class SuperfreqGame {
     }
 
     /**
-     * Audition the current parameter value (costs 1 life)
+     * Audition the current parameter value
      */
     async auditionCurrentParameter() {
-        if (this.remainingLives <= 0) {
-            this.showError('No lives remaining for auditioning!');
-            return;
-        }
-
         if (this.userGuess === null) {
             this.showError('Please set a parameter value first.');
             return;
@@ -349,8 +340,6 @@ class SuperfreqGame {
             const success = await this.audioManager.auditionParameter(parameterName, this.userGuess);
             
             if (success) {
-                this.remainingLives--;
-                this.updateLivesDisplay();
                 console.log(`Auditioned parameter: ${parameterName} = ${this.userGuess}`);
             } else {
                 this.showError('Failed to audition parameter. Please try again.');
@@ -361,15 +350,7 @@ class SuperfreqGame {
         }
     }
 
-    /**
-     * Update lives display
-     */
-    updateLivesDisplay() {
-        if (this.elements.livesDisplay) {
-            const hearts = '❤️'.repeat(Math.max(0, Math.min(5, this.remainingLives)));
-            this.elements.livesDisplay.textContent = `${hearts} x${this.remainingLives}`;
-        }
-    }
+    
 
     /**
      * Play dry sample
@@ -495,13 +476,7 @@ class SuperfreqGame {
             explanation += "Keep practicing! Audio production takes time to master.";
         }
         
-        // Add lives usage info
-        const livesUsed = (puzzle.livesAllocated || 5) - this.remainingLives;
-        if (livesUsed > 0) {
-            explanation += ` You used ${livesUsed} lives to audition parameters.`;
-        } else {
-            explanation += " You didn't need to use any lives for auditioning - great job!";
-        }
+        
         
         return explanation;
     }
@@ -514,8 +489,7 @@ class SuperfreqGame {
             lastPlayed: new Date().toISOString(),
             streak: this.streak,
             totalGames: this.getTotalGames() + 1,
-            averageScore: this.calculateAverageScore(),
-            livesUsed: (this.currentPuzzle.livesAllocated || 5) - this.remainingLives
+            averageScore: this.calculateAverageScore()
         };
         
         localStorage.setItem('superfreq-game-data', JSON.stringify(gameData));
@@ -604,12 +578,7 @@ class SuperfreqGame {
         document.body.appendChild(errorDiv);
     }
 
-    /**
-     * Get remaining lives
-     */
-    getRemainingLives() {
-        return this.remainingLives;
-    }
+    
 
     /**
      * Clean up game resources

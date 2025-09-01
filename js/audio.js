@@ -38,6 +38,10 @@ class AudioManager {
                 if (!this.audioContext) {
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     this.effectsEngine = new AudioEffectsEngine(this.audioContext);
+                    // Create master gain for centralized volume control
+                    this.masterGain = this.audioContext.createGain();
+                    this.masterGain.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
+                    this.masterGain.connect(this.audioContext.destination);
                     console.log('Audio context and effects engine initialized');
                 }
                 return this.audioContext;
@@ -191,8 +195,8 @@ class AudioManager {
             const source = this.audioContext.createBufferSource();
             source.buffer = this.effectsEngine.drySampleBuffer;
             
-            // Connect directly to destination (no effects)
-            source.connect(this.audioContext.destination);
+            // Connect directly to master gain (no effects)
+            source.connect(this.masterGain || this.audioContext.destination);
             
             // Start playback
             source.start(0);
@@ -233,8 +237,8 @@ class AudioManager {
             // Stop any currently playing audio
             this.stopAllAudio();
 
-            // Play through effects engine
-            const success = this.effectsEngine.playAudio();
+            // Play through effects engine routed to master gain
+            const success = this.effectsEngine.playAudio(this.masterGain || this.audioContext.destination);
             if (success) {
                 this.isPlaying = true;
                 console.log('Playing effected audio');
@@ -269,12 +273,20 @@ class AudioManager {
             if (success) {
                 console.log(`Parameter auditioned: ${parameterName} = ${value}`);
 
+                const correctValue = this.currentPuzzle.correctValue;
+                const restore = () => {
+                    try {
+                        this.effectsEngine.updateEffectParameters(effectType, { [mapped]: correctValue });
+                    } catch (restoreError) {
+                        console.warn('Failed to restore hidden value after audition:', restoreError);
+                    }
+                };
+
                 try {
-                    // Restore hidden correct value after playback ends
-                    const correctValue = this.currentPuzzle.correctValue;
-                    this.effectsEngine.updateEffectParameters(effectType, { [mapped]: correctValue });
-                } catch (restoreError) {
-                    console.warn('Failed to restore hidden value after audition:', restoreError);
+                    window.addEventListener('audio-playback-ended', restore, { once: true });
+                } catch (_) {
+                    // Fallback for environments without options support
+                    window.addEventListener('audio-playback-ended', () => restore());
                 }
                 return true;
             }
@@ -381,12 +393,7 @@ class AudioManager {
 
     
 
-    /**
-     * Check if audio is currently playing
-     */
-    isPlaying() {
-        return this.isPlaying;
-    }
+    
 
     /**
      * Get current puzzle data

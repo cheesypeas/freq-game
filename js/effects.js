@@ -108,7 +108,7 @@ class AudioEffectsEngine {
     /**
      * Play audio with current effect chain
      */
-    playAudio() {
+    playAudio(destinationNode) {
         console.log('PlayAudio called:', {
             hasDrySample: !!this.drySampleBuffer,
             hasEffectChain: !!this.currentEffectChain,
@@ -136,7 +136,8 @@ class AudioEffectsEngine {
 
             // Connect through effect chain
             source.connect(this.currentEffectChain.input);
-            this.currentEffectChain.output.connect(this.audioContext.destination);
+            const destination = destinationNode || this.audioContext.destination;
+            this.currentEffectChain.output.connect(destination);
 
             console.log('Audio nodes connected successfully');
 
@@ -213,7 +214,7 @@ class AudioEffectsEngine {
     createReverbNode({ wetMix = 50, roomSize = 0.5 } = {}) {
         // Create impulse response for reverb
         const sampleRate = this.audioContext.sampleRate;
-        const length = sampleRate * roomSize;
+        const length = Math.max(1, Math.floor(sampleRate * roomSize));
         const impulse = this.audioContext.createBuffer(2, length, sampleRate);
         
         // Generate simple impulse response
@@ -227,24 +228,30 @@ class AudioEffectsEngine {
         const convolver = this.audioContext.createConvolver();
         convolver.buffer = impulse;
 
-        // Create wet/dry mix
+        // Create explicit input/output and wet/dry paths
+        const inputGain = this.audioContext.createGain();
+        const outputGain = this.audioContext.createGain();
         const dryGain = this.audioContext.createGain();
         const wetGain = this.audioContext.createGain();
         
         dryGain.gain.setValueAtTime((100 - wetMix) / 100, this.audioContext.currentTime);
         wetGain.gain.setValueAtTime(wetMix / 100, this.audioContext.currentTime);
 
-        // Create merger for stereo
-        const merger = this.audioContext.createChannelMerger(2);
+        // Wiring: input -> dry & wet(convolver) -> output
+        inputGain.connect(dryGain);
+        inputGain.connect(convolver);
+        convolver.connect(wetGain);
+        dryGain.connect(outputGain);
+        wetGain.connect(outputGain);
 
         return {
-            input: this.audioContext.createChannelSplitter(2),
-            output: merger,
+            input: inputGain,
+            output: outputGain,
             params: {
                 wetMix: wetGain.gain,
                 roomSize: null // Would need to recreate convolver for room size changes
             },
-            nodes: { dryGain, wetGain, convolver, merger }
+            nodes: { inputGain, outputGain, dryGain, wetGain, convolver }
         };
     }
 
@@ -320,21 +327,31 @@ class AudioEffectsEngine {
         lfo.connect(lfoGain);
         lfoGain.connect(filters[0].frequency);
 
-        // Create feedback loop
-        feedbackGain.connect(filters[stages - 1]);
+        // Input/output and stage wiring
+        const inputGain = this.audioContext.createGain();
+        const outputGain = this.audioContext.createGain();
+        inputGain.connect(filters[0]);
+        for (let i = 0; i < stages - 1; i++) {
+            filters[i].connect(filters[i + 1]);
+        }
+        filters[stages - 1].connect(outputGain);
+
+        // Feedback loop: last -> feedback -> first
+        filters[stages - 1].connect(feedbackGain);
+        feedbackGain.connect(filters[0]);
 
         // Start LFO
         lfo.start();
 
         return {
-            input: filters[0],
-            output: filters[stages - 1],
+            input: inputGain,
+            output: outputGain,
             params: {
                 rate: lfo.frequency,
                 depth: lfoGain.gain,
                 feedback: feedbackGain.gain
             },
-            nodes: { lfo, lfoGain, feedbackGain, filters }
+            nodes: { lfo, lfoGain, feedbackGain, filters, inputGain, outputGain }
         };
     }
 
@@ -431,6 +448,9 @@ class AudioEffectsEngine {
         
         distortion.curve = curveArray;
         driveGain.gain.setValueAtTime(drive, this.audioContext.currentTime);
+
+        // Wire input drive -> distortion
+        driveGain.connect(distortion);
 
         return {
             input: driveGain,

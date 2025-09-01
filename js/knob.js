@@ -118,10 +118,7 @@
             render(parseFloat(input.value));
         });
 
-        // Initialize on DOM ready (in case script loads before DOM)
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => render(parseFloat(input.value)));
-        }
+        
     }
 
     // Initialize default knob used by the app

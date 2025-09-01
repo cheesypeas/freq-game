@@ -50,12 +50,13 @@ class SuperfreqGame {
             puzzleInfo: document.getElementById('puzzle-info'),
             effectDescription: document.getElementById('effect-description'),
             effectTitle: document.getElementById('effect-title'),
-            dryAudio: document.getElementById('dry-audio'),
-            effectedAudio: document.getElementById('effected-audio'),
+            playPause: document.getElementById('play-pause'),
+            bypassToggle: document.getElementById('bypass-toggle'),
             parameterLabel: document.getElementById('parameter-label'),
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
             parameterUnit: document.getElementById('parameter-unit'),
+            fixedParams: document.getElementById('fixed-params'),
             auditionButton: document.getElementById('audition-button'),
             livesDisplay: document.getElementById('lives-display'),
             submitGuess: document.getElementById('submit-guess'),
@@ -88,20 +89,35 @@ class SuperfreqGame {
             this.submitGuess();
         });
 
-        // Audio controls - these will trigger audio initialization
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.addEventListener('click', async () => {
+        // Transport: Play/Pause
+        if (this.elements.playPause) {
+            this.elements.playPause.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playDrySample();
+                if (this.audioManager.isPlaying) {
+                    this.audioManager.stopAllAudio();
+                    this.updatePlayPauseUI(false);
+                } else {
+                    const bypassed = this.elements.bypassToggle?.getAttribute('aria-pressed') === 'true';
+                    this.audioManager.effectsEngine.setBypass(bypassed);
+                    const success = bypassed ? await this.audioManager.playDrySample() : await this.audioManager.playCurrentSettings();
+                    if (success) this.updatePlayPauseUI(true);
+                }
             });
         }
 
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.addEventListener('click', async () => {
+        // Bypass toggle
+        if (this.elements.bypassToggle) {
+            this.elements.bypassToggle.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playEffectedAudio();
+                const current = this.elements.bypassToggle.getAttribute('aria-pressed') === 'true';
+                const next = !current;
+                this.elements.bypassToggle.setAttribute('aria-pressed', next ? 'true' : 'false');
+                this.audioManager.effectsEngine.setBypass(next);
             });
         }
+
+        // Sync UI when playback ends
+        this.audioManager.onPlaybackEnded = () => this.updatePlayPauseUI(false);
 
         // Removed global click-to-initialize to avoid autoplay prompts
         // (Previously added click handler on game container)
@@ -206,13 +222,16 @@ class SuperfreqGame {
         const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
         
-        // Update audio button labels
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.textContent = '▶︎ Dry';
+        // Initialize transport buttons
+        if (this.elements.playPause) {
+            this.updatePlayPauseUI(false);
         }
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.textContent = '▶︎ FX';
+        if (this.elements.bypassToggle) {
+            this.elements.bypassToggle.setAttribute('aria-pressed', 'false');
         }
+
+        // Render fixed parameter knobs (non-interactive)
+        this.renderFixedParameters();
         
         // Enable submit button
         this.elements.submitGuess.disabled = false;
@@ -229,6 +248,77 @@ class SuperfreqGame {
         
         this.userGuess = value;
         this.updateParameterDisplay(value);
+    }
+
+    updatePlayPauseUI(isPlaying) {
+        if (!this.elements.playPause) return;
+        this.elements.playPause.textContent = isPlaying ? '⏸ Pause' : '▶︎ Play';
+    }
+
+    renderFixedParameters() {
+        const container = this.elements.fixedParams;
+        if (!container) return;
+        container.innerHTML = '';
+        const effectType = this.currentPuzzle.effectType;
+
+        // Define fixed parameter display per effect type (non-interactive)
+        const fixedDefs = {
+            eq: [
+                { key: 'gain', label: 'Gain', unit: 'dB', value: this.currentPuzzle.effectPresets?.eq?.gain ?? 6 },
+                { key: 'q', label: 'Q', unit: '', value: this.currentPuzzle.effectPresets?.eq?.q ?? 1.0 }
+            ],
+            filter: [
+                { key: 'q', label: 'Q', unit: '', value: this.currentPuzzle.effectPresets?.filter?.q ?? 1.0 }
+            ],
+            reverb: [
+                { key: 'roomSize', label: 'Room', unit: '', value: this.currentPuzzle.effectPresets?.reverb?.roomSize ?? 0.8 }
+            ],
+            compression: [
+                { key: 'ratio', label: 'Ratio', unit: ':1', value: this.currentPuzzle.effectPresets?.compression?.ratio ?? 4 },
+                { key: 'attack', label: 'Atk', unit: 's', value: this.currentPuzzle.effectPresets?.compression?.attack ?? 0.003 },
+                { key: 'release', label: 'Rel', unit: 's', value: this.currentPuzzle.effectPresets?.compression?.release ?? 0.25 }
+            ],
+            delay: [
+                { key: 'feedback', label: 'FB', unit: '', value: this.currentPuzzle.effectPresets?.delay?.feedback ?? 0.3 }
+            ],
+            phaser: [
+                { key: 'depth', label: 'Depth', unit: '', value: this.currentPuzzle.effectPresets?.phaser?.depth ?? 0.8 },
+                { key: 'feedback', label: 'FB', unit: '', value: this.currentPuzzle.effectPresets?.phaser?.feedback ?? 0.2 }
+            ],
+            flanger: [
+                { key: 'depth', label: 'Depth', unit: '', value: this.currentPuzzle.effectPresets?.flanger?.depth ?? 0.002 },
+                { key: 'feedback', label: 'FB', unit: '', value: this.currentPuzzle.effectPresets?.flanger?.feedback ?? 0.3 }
+            ],
+            chorus: [
+                { key: 'depth', label: 'Depth', unit: '', value: this.currentPuzzle.effectPresets?.chorus?.depth ?? 0.002 },
+                { key: 'feedback', label: 'FB', unit: '', value: this.currentPuzzle.effectPresets?.chorus?.feedback ?? 0.2 }
+            ],
+            distortion: [
+                { key: 'curve', label: 'Curve', unit: '', value: this.currentPuzzle.effectPresets?.distortion?.curve ?? 400 }
+            ]
+        };
+
+        const defs = fixedDefs[effectType] || [];
+        defs.forEach(def => {
+            const group = document.createElement('div');
+            group.className = 'knob-group static';
+
+            const knob = document.createElement('div');
+            knob.className = 'knob';
+            // set rotation based on normalized value for visual consistency
+            knob.style.setProperty('--knob-rotation', '0deg');
+
+            const labels = document.createElement('div');
+            labels.className = 'knob-labels';
+            const chip = document.createElement('span');
+            chip.className = 'param-chip';
+            chip.textContent = `${def.label}: ${def.value}${def.unit}`;
+            labels.appendChild(chip);
+
+            group.appendChild(knob);
+            group.appendChild(labels);
+            container.appendChild(group);
+        });
     }
 
     /**

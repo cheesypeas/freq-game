@@ -10,6 +10,7 @@ class AudioEffectsEngine {
         this.currentEffectChain = null;
         this.drySampleBuffer = null;
         this.isPlaying = false;
+        this.isBypassed = false;
         
         this.initEffects();
     }
@@ -134,9 +135,13 @@ class AudioEffectsEngine {
                 numberOfChannels: this.drySampleBuffer.numberOfChannels
             });
 
-            // Connect through effect chain
-            source.connect(this.currentEffectChain.input);
-            this.currentEffectChain.output.connect(this.audioContext.destination);
+            // Connect either through effect chain or directly if bypassed
+            if (this.isBypassed || !this.currentEffectChain) {
+                source.connect(this.audioContext.destination);
+            } else {
+                source.connect(this.currentEffectChain.input);
+                this.currentEffectChain.output.connect(this.audioContext.destination);
+            }
 
             console.log('Audio nodes connected successfully');
 
@@ -183,6 +188,13 @@ class AudioEffectsEngine {
             }
             this.currentEffectChain = null;
         }
+    }
+
+    /**
+     * Toggle bypass state
+     */
+    setBypass(enabled) {
+        this.isBypassed = !!enabled;
     }
 
     /**

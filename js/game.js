@@ -50,8 +50,8 @@ class SuperfreqGame {
             puzzleInfo: document.getElementById('puzzle-info'),
             effectDescription: document.getElementById('effect-description'),
             effectTitle: document.getElementById('effect-title'),
-            dryAudio: document.getElementById('dry-audio'),
-            effectedAudio: document.getElementById('effected-audio'),
+            transportPlay: document.getElementById('transport-play'),
+            bypassToggle: document.getElementById('bypass-toggle'),
             parameterLabel: document.getElementById('parameter-label'),
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
@@ -62,7 +62,8 @@ class SuperfreqGame {
             results: document.getElementById('results'),
             scoreDisplay: document.getElementById('score-display'),
             correctAnswer: document.getElementById('correct-answer'),
-            explanation: document.getElementById('explanation')
+            explanation: document.getElementById('explanation'),
+            fixedParams: document.getElementById('fixed-params')
         };
     }
 
@@ -88,18 +89,28 @@ class SuperfreqGame {
             this.submitGuess();
         });
 
-        // Audio controls - these will trigger audio initialization
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.addEventListener('click', async () => {
+        // Transport controls
+        if (this.elements.transportPlay) {
+            this.elements.transportPlay.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playDrySample();
+                // Toggle play/pause
+                if (this.audioManager.isPlaying) {
+                    this.audioManager.stopAllAudio();
+                } else {
+                    await this.audioManager.playTransport();
+                }
+                this.updateTransportUI();
             });
+            // Subscribe to playback state changes
+            this.audioManager.setOnPlaybackStateChange(() => this.updateTransportUI());
         }
-
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.addEventListener('click', async () => {
+        if (this.elements.bypassToggle) {
+            this.elements.bypassToggle.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playEffectedAudio();
+                const pressed = this.elements.bypassToggle.getAttribute('aria-pressed') === 'true';
+                this.audioManager.setBypass(!pressed);
+                this.updateBypassUI();
+                // If currently playing, restart in new mode handled in audio manager
             });
         }
 
@@ -206,16 +217,101 @@ class SuperfreqGame {
         const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
         
-        // Update audio button labels
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.textContent = '▶︎ Dry';
-        }
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.textContent = '▶︎ FX';
-        }
+        // Initialize transport/bypass UI
+        this.updateTransportUI();
+        this.updateBypassUI();
+
+        // Render fixed parameter knobs
+        this.renderFixedParameters();
         
         // Enable submit button
         this.elements.submitGuess.disabled = false;
+    }
+
+    /**
+     * Render read-only knobs for fixed parameters based on puzzle presets
+     */
+    renderFixedParameters() {
+        if (!this.elements.fixedParams) return;
+        const puzzle = this.currentPuzzle;
+        const presets = puzzle.effectPresets || {};
+        const effectType = puzzle.effectType;
+
+        // Flatten preset object for current effect type
+        const preset = presets[effectType] || {};
+
+        // Decide which fixed params to show per effect type, excluding the guess parameter
+        const paramMeta = {
+            eq: { order: ['gain', 'q'], labels: { gain: 'Gain', q: 'Q' }, units: { gain: 'dB', q: '' } },
+            filter: { order: ['q', 'type'], labels: { q: 'Q', type: 'Type' }, units: { q: '', type: '' } },
+            reverb: { order: ['roomSize', 'wetMix'], labels: { roomSize: 'Room', wetMix: 'Mix' }, units: { roomSize: '', wetMix: '%' } },
+            compression: { order: ['ratio', 'attack', 'release'], labels: { ratio: 'Ratio', attack: 'Atk', release: 'Rel' }, units: { ratio: ':1', attack: 's', release: 's' } },
+            delay: { order: ['feedback'], labels: { feedback: 'FB' }, units: { feedback: '' } },
+            phaser: { order: ['depth', 'feedback', 'stages'], labels: { depth: 'Depth', feedback: 'FB', stages: 'Stages' }, units: { depth: '', feedback: '', stages: '' } },
+            flanger: { order: ['depth', 'feedback'], labels: { depth: 'Depth', feedback: 'FB' }, units: { depth: '', feedback: '' } },
+            chorus: { order: ['depth', 'feedback'], labels: { depth: 'Depth', feedback: 'FB' }, units: { depth: '', feedback: '' } },
+            distortion: { order: ['curve'], labels: { curve: 'Curve' }, units: { curve: '' } }
+        };
+
+        const meta = paramMeta[effectType] || { order: [], labels: {}, units: {} };
+        const exclude = puzzle.parameter;
+
+        // Build knob UI (read-only appearance)
+        const container = document.createElement('div');
+        container.className = 'fixed-params-grid';
+
+        meta.order.forEach((key) => {
+            if (key === exclude) return;
+            if (preset[key] === undefined) return;
+
+            const value = preset[key];
+            const label = meta.labels[key] || key;
+            const unit = meta.units[key] || '';
+
+            const group = document.createElement('div');
+            group.className = 'knob-group fixed';
+
+            const knob = document.createElement('div');
+            knob.className = 'knob read-only';
+            knob.setAttribute('tabindex', '-1');
+            // Map value to angle approximately (static visual): center position for now
+            knob.style.setProperty('--knob-rotation', '0deg');
+
+            const caption = document.createElement('div');
+            caption.className = 'fixed-caption';
+            caption.textContent = label;
+
+            const valueEl = document.createElement('div');
+            valueEl.className = 'fixed-value';
+            valueEl.textContent = `${value}${unit}`;
+
+            group.appendChild(knob);
+            group.appendChild(caption);
+            group.appendChild(valueEl);
+            container.appendChild(group);
+        });
+
+        // Replace content
+        this.elements.fixedParams.innerHTML = '';
+        this.elements.fixedParams.appendChild(container);
+    }
+
+    updateTransportUI() {
+        const btn = this.elements.transportPlay;
+        if (!btn) return;
+        const isPlaying = this.audioManager.isPlaying;
+        btn.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+        btn.dataset.state = isPlaying ? 'playing' : 'stopped';
+        btn.textContent = isPlaying ? '⏸︎ Pause' : '▶︎ Play';
+    }
+
+    updateBypassUI() {
+        const btn = this.elements.bypassToggle;
+        if (!btn) return;
+        const active = this.audioManager.bypassEnabled;
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        btn.dataset.state = active ? 'on' : 'off';
+        btn.textContent = active ? 'Bypass On' : 'Bypass';
     }
 
     /**

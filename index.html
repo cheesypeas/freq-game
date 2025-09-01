@@ -37,38 +37,34 @@
                         <p id="effect-description"></p>
                     </div>
 
-                    <div id="audio-section">
-                        <div id="dry-sample">
-                            <h3>Dry</h3>
-                            <button id="dry-audio" class="audio-button" data-tooltip="Play original">
-                                ▶︎ Dry
-                            </button>
-                        </div>
-
-                        <div id="effected-sample">
-                            <h3>FX</h3>
-                            <button id="effected-audio" class="audio-button" data-tooltip="Play with current setting">
-                                ▶︎ FX
-                            </button>
-                        </div>
+                    <div id="transport" class="transport-row">
+                        <button id="play-pause" class="transport-button" data-tooltip="Play or pause audio">
+                            ▶︎ Play
+                        </button>
+                        <button id="bypass-toggle" class="bypass-button" aria-pressed="false" data-tooltip="Bypass effect processing">
+                            Bypass
+                        </button>
                     </div>
 
                     <div id="guess-section">
-                        <h3>Set</h3>
-                        <div id="parameter-input">
-                            <label for="parameter-slider" id="parameter-label"></label>
-                            <div class="control-row">
-                                <div class="knob-group">
-                                    <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
-                                    <div class="knob-labels">
-                                        <span class="min-label"></span>
-                                        <span class="max-label"></span>
+                        <h3>Controls</h3>
+                        <div class="plugin-controls">
+                            <div id="fixed-params" class="knob-strip" aria-label="Fixed parameters"></div>
+                            <div id="parameter-input" class="main-parameter">
+                                <label for="parameter-slider" id="parameter-label"></label>
+                                <div class="control-row">
+                                    <div class="knob-group">
+                                        <div class="knob" id="parameter-knob" role="slider" aria-label="Parameter knob" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"></div>
+                                        <div class="knob-labels">
+                                            <span class="min-label"></span>
+                                            <span class="max-label"></span>
+                                        </div>
                                     </div>
-                                </div>
-                                <input class="visually-hidden" type="range" id="parameter-slider" min="0" max="100" step="1">
-                                <div class="parameter-display">
-                                    <span id="parameter-value"></span>
-                                    <span id="parameter-unit"></span>
+                                    <input class="visually-hidden" type="range" id="parameter-slider" min="0" max="100" step="1">
+                                    <div class="parameter-display">
+                                        <span id="parameter-value"></span>
+                                        <span id="parameter-unit"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

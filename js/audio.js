@@ -15,6 +15,7 @@ class AudioManager {
         // Audio state
         this.isPlaying = false;
         this.currentSource = null;
+        this.onPlaybackEnded = null;
         
         // Initialize audio context and effects engine
         this.initAudioContext();
@@ -194,6 +195,9 @@ class AudioManager {
             source.onended = () => {
                 this.isPlaying = false;
                 this.currentSource = null;
+                if (typeof this.onPlaybackEnded === 'function') {
+                    try { this.onPlaybackEnded(); } catch (e) { /* noop */ }
+                }
             };
 
             console.log('Playing dry sample');

@@ -450,37 +450,6 @@ class AudioManager {
     }
 
     /**
-     * Handle autoplay restrictions
-     */
-    handleAutoplayRestriction() {
-        const message = document.createElement('div');
-        message.className = 'autoplay-message';
-        message.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <h3>Audio Playback Disabled</h3>
-                <p>Click the button below to enable audio playback for this game.</p>
-                <button onclick="this.parentElement.parentElement.remove(); audioManager.resumeAudioContext();" 
-                        style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                    Enable Audio
-                </button>
-            </div>
-        `;
-        message.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 1000;
-            max-width: 400px;
-        `;
-        document.body.appendChild(message);
-    }
-
-    /**
      * Clean up audio resources
      */
     cleanup() {

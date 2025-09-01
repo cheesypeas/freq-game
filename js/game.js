@@ -245,10 +245,9 @@ class SuperfreqGame {
         if (!this.elements.bypass) return;
         this.elements.bypass.setAttribute('aria-pressed', enabled ? 'true' : 'false');
         this.elements.bypass.textContent = enabled ? 'Bypass On' : 'Bypass Off';
-        // If currently playing, restart appropriate stream to reflect bypass state
+        // If currently playing, stop playback; do not auto-start
         if (this.audioManager.isPlaying) {
             this.togglePlayPause(); // stop
-            this.togglePlayPause(); // start with new state
         }
     }
 

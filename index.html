@@ -37,24 +37,21 @@
                         <p id="effect-description"></p>
                     </div>
 
-                    <div id="audio-section">
-                        <div id="dry-sample">
-                            <h3>Dry</h3>
-                            <button id="dry-audio" class="audio-button" data-tooltip="Play original">
-                                ▶︎ Dry
-                            </button>
-                        </div>
-
-                        <div id="effected-sample">
-                            <h3>FX</h3>
-                            <button id="effected-audio" class="audio-button" data-tooltip="Play with current setting">
-                                ▶︎ FX
-                            </button>
-                        </div>
+                    <div id="transport" class="transport">
+                        <button id="play-pause-button" class="transport-button" data-tooltip="Play/Pause">
+                            ▶︎ Play
+                        </button>
+                        <button id="bypass-button" class="toggle-button" aria-pressed="false" data-tooltip="Bypass effect">
+                            Bypass Off
+                        </button>
                     </div>
 
                     <div id="guess-section">
                         <h3>Set</h3>
+                        <div id="plugin-controls" class="plugin-controls">
+                            <div id="fixed-parameters" class="fixed-parameters" aria-label="Fixed parameters"></div>
+                        </div>
+
                         <div id="parameter-input">
                             <label for="parameter-slider" id="parameter-label"></label>
                             <div class="control-row">

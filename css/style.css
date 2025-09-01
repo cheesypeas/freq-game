@@ -1046,3 +1046,68 @@ a {
     background: #30e07c;
     box-shadow: 0 0 10px rgba(48,224,124,0.7), 0 0 0 2px rgba(0,0,0,0.6);
 }
+
+/* =============================
+   Transport & Plugin Controls
+   ============================= */
+.transport {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.transport-button, .toggle-button {
+    background: var(--panel-alt);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.transport-button:hover, .toggle-button:hover {
+    background: #243040;
+}
+
+.toggle-button[aria-pressed="true"] {
+    background: #382b2b;
+    border-color: #4a2f2f;
+}
+
+.plugin-controls {
+    display: flex;
+    align-items: stretch;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.fixed-parameters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 1rem;
+}
+
+.fixed-knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.knob-readonly {
+    cursor: default;
+}
+
+.knob-caption {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.knob-value {
+    font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9rem;
+    color: var(--text);
+}

@@ -84,19 +84,7 @@ main {
     margin-bottom: 1rem;
 }
 
-/* Lives counter */
-.lives-counter {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 999px;
-    padding: 0.25rem 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-weight: 600;
-    color: #856404;
-    font-size: 0.9rem;
-}
+ 
 
 /* Audio section */
 #audio-section {
@@ -353,19 +341,7 @@ main {
     margin-bottom: 1rem;
 }
 
-.lives-summary {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    padding: 0.75rem;
-    margin-top: 1rem;
-}
-
-.lives-summary p {
-    color: #856404;
-    margin: 0;
-    font-weight: 600;
-}
+ 
 
 /* Footer */
 footer {
@@ -460,9 +436,7 @@ a {
         font-size: 1rem;
     }
 
-    .lives-counter {
-        font-size: 0.85rem;
-    }
+    
 
     #dry-sample, #effected-sample {
         padding: 0.75rem;
@@ -706,11 +680,7 @@ a {
 	color: var(--muted);
 }
 
-.theme-dark .lives-counter {
-	background: #2b2210;
-	border: 1px solid #403012;
-	color: #ffd58a;
-}
+ 
 
 .theme-dark #audio-section { }
 
@@ -819,14 +789,7 @@ a {
 	color: var(--muted);
 }
 
-.theme-dark .lives-summary {
-	background: #2b2210;
-	border-color: #403012;
-}
-
-.theme-dark .lives-summary p {
-	color: #ffd58a;
-}
+ 
 
 .theme-dark footer {
 	background: rgba(255, 255, 255, 0.04);

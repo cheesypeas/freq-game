@@ -13,7 +13,6 @@ class SuperfreqGame {
         this.userGuess = null;
         this.score = null;
         this.streak = 0;
-        this.remainingLives = Infinity;
         this.audioInitialized = false; // Flag to track if audio is initialized
         this.initializingAudio = false; // Flag to prevent multiple simultaneous initializations
         
@@ -196,8 +195,6 @@ class SuperfreqGame {
         this.elements.parameterUnit.textContent = effect.unit;
         
         // Set up slider with proper range
-        const minValue = effect.minValue;
-        const maxValue = effect.maxValue;
         this.elements.parameterSlider.min = '0';
         this.elements.parameterSlider.max = '100';
         this.elements.parameterSlider.value = '50';
@@ -351,35 +348,7 @@ class SuperfreqGame {
 
     
 
-    /**
-     * Play dry sample
-     */
-    async playDrySample() {
-        try {
-            const success = await this.audioManager.playDrySample();
-            if (!success) {
-                this.showError('Failed to play dry sample. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error playing dry sample:', error);
-            this.showError('Error playing dry sample. Please try again.');
-        }
-    }
-
-    /**
-     * Play effected audio with current settings
-     */
-    async playEffectedAudio() {
-        try {
-            const success = await this.audioManager.playCurrentSettings();
-            if (!success) {
-                this.showError('Failed to play effected audio. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error playing effected audio:', error);
-            this.showError('Error playing effected audio. Please try again.');
-        }
-    }
+    
 
     /**
      * Submit user's guess

@@ -9,8 +9,6 @@ class AudioManager {
         this.effectsEngine = null;
         this.currentPuzzle = null;
         this.isLoading = false;
-        this.volume = 0.7;
-        this.remainingLives = Infinity;
         
         // Audio state
         this.isPlaying = false;
@@ -287,31 +285,7 @@ class AudioManager {
         }
     }
 
-    /**
-     * Update the main parameter being guessed
-     */
-    updateMainParameter(value) {
-        if (!this.effectsEngine || !this.currentPuzzle) {
-            return false;
-        }
-
-        try {
-            const effectType = this.currentPuzzle.effectType;
-            const parameterName = this.currentPuzzle.parameter;
-            
-            // Update the main parameter
-            const mapped = this.mapParameterName(effectType, parameterName);
-            const params = { [mapped]: value };
-            this.effectsEngine.updateEffectParameters(effectType, params);
-            
-            console.log(`Main parameter updated: ${parameterName} = ${value}`);
-            return true;
-
-        } catch (error) {
-            console.error('Failed to update main parameter:', error);
-            return false;
-        }
-    }
+    
 
     /**
      * Play audio with current parameter settings
@@ -355,38 +329,11 @@ class AudioManager {
         this.isPlaying = false;
     }
 
-    /**
-     * Set volume for all audio
-     */
-    setVolume(level) {
-        this.volume = Math.max(0, Math.min(1, level));
-        
-        // Update master gain if we have one
-        if (this.audioContext) {
-            // Create a master gain node if it doesn't exist
-            if (!this.masterGain) {
-                this.masterGain = this.audioContext.createGain();
-                this.masterGain.connect(this.audioContext.destination);
-            }
-            this.masterGain.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
-        }
-    }
-
-    /**
-     * Get current volume
-     */
-    getVolume() {
-        return this.volume;
-    }
+    
 
     
 
-    /**
-     * Check if audio is currently playing
-     */
-    isPlaying() {
-        return this.isPlaying;
-    }
+    
 
     /**
      * Get current puzzle data
@@ -395,16 +342,7 @@ class AudioManager {
         return this.currentPuzzle;
     }
 
-    /**
-     * Get effect parameter ranges for current puzzle
-     */
-    getEffectParameterRanges() {
-        if (!this.currentPuzzle || !this.effectsEngine) {
-            return {};
-        }
-        
-        return this.effectsEngine.getEffectParameterRanges(this.currentPuzzle.effectType);
-    }
+    
 
     /**
      * Check if Web Audio API is supported
@@ -413,12 +351,7 @@ class AudioManager {
         return !!(window.AudioContext || window.webkitAudioContext);
     }
 
-    /**
-     * Get audio context state
-     */
-    getAudioContextState() {
-        return this.audioContext ? this.audioContext.state : 'not-created';
-    }
+    
 
     /**
      * Resume audio context (for autoplay restrictions)
@@ -456,26 +389,9 @@ class AudioManager {
         this.currentPuzzle = null;
     }
 
-    /**
-     * Get loading status
-     */
-    getLoadingStatus() {
-        return this.isLoading;
-    }
+    
 
-    /**
-     * Get current effect type
-     */
-    getCurrentEffectType() {
-        return this.currentPuzzle ? this.currentPuzzle.effectType : null;
-    }
-
-    /**
-     * Get current parameter name
-     */
-    getCurrentParameterName() {
-        return this.currentPuzzle ? this.currentPuzzle.parameter : null;
-    }
+    
 }
 
 // Export for use in other modules

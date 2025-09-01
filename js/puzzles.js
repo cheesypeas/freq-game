@@ -254,32 +254,9 @@ class PuzzleSystem {
         return this.effects[effectType] || null;
     }
 
-    /**
-     * Validate parameter range
-     */
-    validateParameterRange(effectType, value) {
-        const effect = this.effects[effectType];
-        if (!effect) return false;
-        
-        return value >= effect.minValue && value <= effect.maxValue;
-    }
+    
 
-    /**
-     * Convert parameter value to slider position (0-100)
-     */
-    valueToSliderPosition(effectType, value) {
-        const effect = this.effects[effectType];
-        if (!effect) return 0;
-        
-        if (effect.logarithmic) {
-            const logMin = Math.log(effect.minValue);
-            const logMax = Math.log(effect.maxValue);
-            const logValue = Math.log(value);
-            return ((logValue - logMin) / (logMax - logMin)) * 100;
-        } else {
-            return ((value - effect.minValue) / (effect.maxValue - effect.minValue)) * 100;
-        }
-    }
+    
 
     /**
      * Convert slider position (0-100) to parameter value
@@ -320,43 +297,9 @@ class PuzzleSystem {
 
     
 
-    /**
-     * Get effect difficulty rating
-     */
-    getEffectDifficulty(effectType) {
-        const difficultyMap = {
-            'eq': 'Easy',
-            'reverb': 'Hard',
-            'compression': 'Medium',
-            'delay': 'Easy',
-            'phaser': 'Medium',
-            'flanger': 'Medium',
-            'chorus': 'Medium',
-            'distortion': 'Easy',
-            'filter': 'Easy'
-        };
-        
-        return difficultyMap[effectType] || 'Medium';
-    }
+    
 
-    /**
-     * Get tips for a specific effect type
-     */
-    getEffectTips(effectType) {
-        const tipsMap = {
-            'eq': 'Listen for changes in brightness or warmth. Higher frequencies add brightness, lower frequencies add warmth.',
-            'reverb': 'Focus on the sense of space. More reverb makes it sound like it\'s in a larger room.',
-            'compression': 'Listen for dynamic range. Compression makes loud parts quieter and quiet parts louder.',
-            'delay': 'Listen for echoes. Longer delays create more space between the original and the echo.',
-            'phaser': 'Listen for a sweeping, whooshing sound. Faster rates create more movement.',
-            'flanger': 'Listen for a jet-like swooshing effect. Faster rates create more intense movement.',
-            'chorus': 'Listen for a thickening effect that makes it sound like multiple instruments.',
-            'distortion': 'Listen for added harmonics and grit. More drive creates more saturation.',
-            'filter': 'Listen for changes in brightness. Lower cutoff frequencies remove high frequencies.'
-        };
-        
-        return tipsMap[effectType] || 'Listen carefully to the changes in the audio as you adjust the parameter.';
-    }
+    
 }
 
 // Export for use in other modules

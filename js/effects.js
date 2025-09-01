@@ -30,21 +30,7 @@ class AudioEffectsEngine {
         this.effects.set('filter', this.createFilterNode.bind(this));
     }
 
-    /**
-     * Load dry sample into buffer from URL
-     */
-    async loadDrySample(url) {
-        try {
-            const response = await fetch(url);
-            const arrayBuffer = await response.arrayBuffer();
-            this.drySampleBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-            console.log('Dry sample loaded successfully');
-            return true;
-        } catch (error) {
-            console.error('Failed to load dry sample:', error);
-            return false;
-        }
-    }
+    
 
     /**
      * Load dry sample into buffer from array buffer
@@ -462,38 +448,11 @@ class AudioEffectsEngine {
         };
     }
 
-    /**
-     * Get available effect types
-     */
-    getAvailableEffects() {
-        return Array.from(this.effects.keys());
-    }
+    
 
-    /**
-     * Check if effect is supported
-     */
-    isEffectSupported(effectType) {
-        return this.effects.has(effectType);
-    }
+    
 
-    /**
-     * Get effect parameter ranges
-     */
-    getEffectParameterRanges(effectType) {
-        const ranges = {
-            eq: { frequency: [20, 20000], gain: [-20, 20], q: [0.1, 10] },
-            reverb: { wetMix: [0, 100], roomSize: [0.1, 2.0] },
-            compression: { threshold: [-60, 0], ratio: [1, 20], attack: [0.001, 0.1], release: [0.01, 1.0] },
-            delay: { time: [10, 1000], feedback: [0, 0.9] },
-            phaser: { rate: [0.1, 2.0], depth: [0.1, 1.0], feedback: [0, 0.9] },
-            flanger: { rate: [0.1, 2.0], depth: [0.001, 0.01], feedback: [0, 0.9] },
-            chorus: { rate: [0.1, 2.0], depth: [0.001, 0.01], feedback: [0, 0.9] },
-            distortion: { drive: [1, 10] },
-            filter: { frequency: [20, 20000], q: [0.1, 10] }
-        };
-        
-        return ranges[effectType] || {};
-    }
+    
 
     /**
      * Clean up resources

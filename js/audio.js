@@ -15,6 +15,8 @@ class AudioManager {
         // Audio state
         this.isPlaying = false;
         this.currentSource = null;
+        this.bypassEnabled = false;
+        this.onPlaybackStateChange = null;
         
         // Initialize audio context and effects engine
         this.initAudioContext();
@@ -189,11 +191,13 @@ class AudioManager {
             source.start(0);
             this.currentSource = source;
             this.isPlaying = true;
+            this.notifyPlaybackChange();
 
             // Set up end callback
             source.onended = () => {
                 this.isPlaying = false;
                 this.currentSource = null;
+                this.notifyPlaybackChange();
             };
 
             console.log('Playing dry sample');
@@ -227,6 +231,7 @@ class AudioManager {
             const success = this.effectsEngine.playAudio();
             if (success) {
                 this.isPlaying = true;
+                this.notifyPlaybackChange();
                 console.log('Playing effected audio');
             }
             return success;
@@ -347,6 +352,7 @@ class AudioManager {
         }
         
         this.isPlaying = false;
+        this.notifyPlaybackChange();
     }
 
     /**
@@ -484,6 +490,52 @@ class AudioManager {
         
         this.effectsEngine = null;
         this.currentPuzzle = null;
+    }
+
+    /**
+     * Enable or disable bypass (dry signal only)
+     */
+    setBypass(enabled) {
+        const newValue = !!enabled;
+        const changed = newValue !== this.bypassEnabled;
+        this.bypassEnabled = newValue;
+        // If playing, restart transport with new mode
+        if (changed && this.isPlaying) {
+            this.stopAllAudio();
+            // Fire-and-forget restart in the new mode
+            if (this.bypassEnabled) {
+                this.playDrySample();
+            } else {
+                this.playCurrentSettings();
+            }
+        }
+    }
+
+    /**
+     * Play using current transport mode (bypass or effected)
+     */
+    async playTransport() {
+        if (this.bypassEnabled) {
+            return await this.playDrySample();
+        }
+        return await this.playCurrentSettings();
+    }
+
+    /**
+     * Register a callback for playback state changes
+     */
+    setOnPlaybackStateChange(callback) {
+        this.onPlaybackStateChange = typeof callback === 'function' ? callback : null;
+    }
+
+    notifyPlaybackChange() {
+        if (this.onPlaybackStateChange) {
+            try {
+                this.onPlaybackStateChange(this.isPlaying);
+            } catch (_) {
+                // no-op
+            }
+        }
     }
 
     /**

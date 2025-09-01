@@ -98,71 +98,59 @@ main {
     font-size: 0.9rem;
 }
 
-/* Audio section */
-#audio-section {
-    margin-bottom: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-#dry-sample, #effected-sample {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: #f8f9fa;
+/* Plugin interface */
+#plugin-interface {
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
     border-radius: 12px;
-    border-left: 4px solid #667eea;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
 }
 
-/* Panel chrome */
-.theme-dark #dry-sample::before,
-.theme-dark #effected-sample::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: 12px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.35);
+.transport {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-#dry-sample h3, #effected-sample h3 {
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-.audio-button {
-    background: #667eea;
-    color: white;
-    border: 1px solid transparent;
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
+.transport-button {
+    background: linear-gradient(180deg, #5b9bff, #2f6bd9);
+    color: #fff;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 16px rgba(47, 107, 217, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.28);
-    margin-bottom: 0.5rem;
-    min-width: 200px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
 }
 
-.audio-button:hover {
-    background: #5a6fd8;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.38);
+.transport-button[data-state="playing"] {
+    background: linear-gradient(180deg, #ff7b7b, #d93d3d);
+    box-shadow: 0 6px 16px rgba(217, 61, 61, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
-.audio-button:active {
-    transform: translateY(0);
+.transport-button:active { transform: translateY(1px); }
+
+.bypass-button {
+    background: linear-gradient(180deg, #e5e7eb, #c7ccd4);
+    color: #111827;
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 10px;
+    padding: 0.45rem 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.12);
+    cursor: pointer;
 }
 
-.audio-tip {
-    color: #666;
-    font-size: 0.9rem;
-    font-style: italic;
-    margin: 0;
+.bypass-button[aria-pressed="true"], .bypass-button[data-state="on"] {
+    background: linear-gradient(180deg, #10b981, #059669);
+    color: white;
+    border-color: rgba(0,0,0,0.25);
+    box-shadow: 0 6px 16px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 /* Guess section */
@@ -252,6 +240,30 @@ main {
     color: #666;
     margin-left: 0.25rem;
     font-size: 1.1rem;
+}
+
+/* Fixed params */
+.fixed-params {
+    margin-top: 1rem;
+}
+.fixed-params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+.knob-group.fixed .knob {
+    cursor: default;
+}
+.knob.read-only { pointer-events: none; }
+.fixed-caption {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+.fixed-value {
+    font-size: 0.9rem;
+    color: #111827;
+    font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 /* Audition section */

@@ -37,18 +37,13 @@
                         <p id="effect-description"></p>
                     </div>
 
-                    <div id="audio-section">
-                        <div id="dry-sample">
-                            <h3>Dry</h3>
-                            <button id="dry-audio" class="audio-button" data-tooltip="Play original">
-                                ▶︎ Dry
+                    <div id="plugin-interface">
+                        <div class="transport">
+                            <button id="transport-play" class="transport-button" aria-pressed="false" data-state="stopped" data-tooltip="Play / Pause">
+                                ▶︎ Play
                             </button>
-                        </div>
-
-                        <div id="effected-sample">
-                            <h3>FX</h3>
-                            <button id="effected-audio" class="audio-button" data-tooltip="Play with current setting">
-                                ▶︎ FX
+                            <button id="bypass-toggle" class="bypass-button" aria-pressed="false" data-state="off" data-tooltip="Bypass effect">
+                                Bypass
                             </button>
                         </div>
                     </div>
@@ -72,6 +67,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div id="fixed-params" class="fixed-params" aria-hidden="false"></div>
                         
                         <div class="audition-section">
                             <button id="audition-button" class="audition-button" data-tooltip="Spend 1 life to preview">

@@ -318,7 +318,7 @@ class PuzzleSystem {
         }
     }
 
-    // Lives recommendation removed
+    
 
     /**
      * Get effect difficulty rating

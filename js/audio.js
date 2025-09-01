@@ -10,7 +10,6 @@ class AudioManager {
         this.currentPuzzle = null;
         this.isLoading = false;
         this.volume = 0.7;
-        // Lives mechanic removed
         this.remainingLives = Infinity;
         
         // Audio state
@@ -380,7 +379,7 @@ class AudioManager {
         return this.volume;
     }
 
-    // Lives getter removed
+    
 
     /**
      * Check if audio is currently playing

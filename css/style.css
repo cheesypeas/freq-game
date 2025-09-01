@@ -84,7 +84,7 @@ main {
     margin-bottom: 1rem;
 }
 
-/* Lives counter removed */
+ 
 
 /* Audio section */
 #audio-section {
@@ -341,7 +341,7 @@ main {
     margin-bottom: 1rem;
 }
 
-/* lives summary removed */
+ 
 
 /* Footer */
 footer {
@@ -436,7 +436,7 @@ a {
         font-size: 1rem;
     }
 
-    /* lives counter removed */
+    
 
     #dry-sample, #effected-sample {
         padding: 0.75rem;
@@ -680,7 +680,7 @@ a {
 	color: var(--muted);
 }
 
-/* lives counter removed */
+ 
 
 .theme-dark #audio-section { }
 
@@ -789,7 +789,7 @@ a {
 	color: var(--muted);
 }
 
-/* lives summary removed */
+ 
 
 .theme-dark footer {
 	background: rgba(255, 255, 255, 0.04);

@@ -13,7 +13,6 @@ class SuperfreqGame {
         this.userGuess = null;
         this.score = null;
         this.streak = 0;
-        // Lives mechanic removed
         this.remainingLives = Infinity;
         this.audioInitialized = false; // Flag to track if audio is initialized
         this.initializingAudio = false; // Flag to prevent multiple simultaneous initializations
@@ -58,7 +57,6 @@ class SuperfreqGame {
             parameterValue: document.getElementById('parameter-value'),
             parameterUnit: document.getElementById('parameter-unit'),
             auditionButton: document.getElementById('audition-button'),
-            // Lives display removed
             submitGuess: document.getElementById('submit-guess'),
             results: document.getElementById('results'),
             scoreDisplay: document.getElementById('score-display'),
@@ -108,8 +106,7 @@ class SuperfreqGame {
             });
         }
 
-        // Removed global click-to-initialize to avoid autoplay prompts
-        // (Previously added click handler on game container)
+        
         
     }
 
@@ -135,7 +132,7 @@ class SuperfreqGame {
             // Load puzzle audio with real-time effects
             await this.audioManager.loadPuzzleAudio(this.currentPuzzle);
             
-            // Lives mechanic removed
+            
             
             this.audioInitialized = true;
             console.log('Audio initialization completed successfully');
@@ -168,7 +165,7 @@ class SuperfreqGame {
             // Show the game interface (audio will be loaded on first user interaction)
             this.showGame();
             
-            // Removed audio initialization message (no autoplay prompt)
+            
             
         } catch (error) {
             console.error('Failed to load puzzle:', error);
@@ -179,7 +176,7 @@ class SuperfreqGame {
     /**
      * Show message about audio initialization
      */
-    // Removed showAudioInitMessage: no longer needed
+    
 
     /**
      * Set up the puzzle interface
@@ -353,7 +350,7 @@ class SuperfreqGame {
         }
     }
 
-    // Lives display removed
+    
 
     /**
      * Play dry sample
@@ -479,7 +476,7 @@ class SuperfreqGame {
             explanation += "Keep practicing! Audio production takes time to master.";
         }
         
-        // Lives usage info removed
+        
         
         return explanation;
     }
@@ -581,7 +578,7 @@ class SuperfreqGame {
         document.body.appendChild(errorDiv);
     }
 
-    // Lives getter removed
+    
 
     /**
      * Clean up game resources

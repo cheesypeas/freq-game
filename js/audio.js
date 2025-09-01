@@ -21,6 +21,14 @@ class AudioManager {
     }
 
     /**
+     * Map puzzle parameter names to engine parameter names
+     */
+    mapParameterName(effectType, paramName) {
+        if (effectType === 'filter' && paramName === 'cutoff') return 'frequency';
+        return paramName;
+    }
+
+    /**
      * Initialize Web Audio API context
      */
     initAudioContext() {
@@ -90,7 +98,8 @@ class AudioManager {
             const mainValue = puzzleData.correctValue;
             
             // Create initial effect chain with correct parameters
-            const initialParams = { ...effectPresets, [mainParam]: mainValue };
+            const mappedMainParam = this.mapParameterName(effectType, mainParam);
+            const initialParams = { ...effectPresets, [mappedMainParam]: mainValue };
             this.effectsEngine.createEffectChain(effectType, initialParams);
             
             this.isLoading = false;
@@ -194,6 +203,7 @@ class AudioManager {
             source.onended = () => {
                 this.isPlaying = false;
                 this.currentSource = null;
+                window.dispatchEvent(new CustomEvent('audio-playback-ended'));
             };
 
             console.log('Playing dry sample');
@@ -255,7 +265,8 @@ class AudioManager {
             const effectType = this.currentPuzzle.effectType;
 
             // Temporarily apply user's value
-            this.effectsEngine.updateEffectParameters(effectType, { [parameterName]: value });
+            const mapped = this.mapParameterName(effectType, parameterName);
+            this.effectsEngine.updateEffectParameters(effectType, { [mapped]: value });
 
             // Play with the temporary value
             const success = await this.playEffectedAudio();
@@ -268,7 +279,7 @@ class AudioManager {
                 try {
                     // Restore hidden correct value after playback ends
                     const correctValue = this.currentPuzzle.correctValue;
-                    this.effectsEngine.updateEffectParameters(effectType, { [parameterName]: correctValue });
+                    this.effectsEngine.updateEffectParameters(effectType, { [mapped]: correctValue });
                 } catch (restoreError) {
                     console.warn('Failed to restore hidden value after audition:', restoreError);
                 }
@@ -296,7 +307,8 @@ class AudioManager {
             const parameterName = this.currentPuzzle.parameter;
             
             // Update the main parameter
-            const params = { [parameterName]: value };
+            const mapped = this.mapParameterName(effectType, parameterName);
+            const params = { [mapped]: value };
             this.effectsEngine.updateEffectParameters(effectType, params);
             
             console.log(`Main parameter updated: ${parameterName} = ${value}`);
@@ -323,7 +335,8 @@ class AudioManager {
                 const effectType = this.currentPuzzle.effectType;
                 const parameterName = this.currentPuzzle.parameter;
                 const correctValue = this.currentPuzzle.correctValue;
-                this.effectsEngine.updateEffectParameters(effectType, { [parameterName]: correctValue });
+                const mapped = this.mapParameterName(effectType, parameterName);
+                this.effectsEngine.updateEffectParameters(effectType, { [mapped]: correctValue });
             }
 
             return await this.playEffectedAudio();

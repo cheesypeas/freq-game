@@ -50,8 +50,8 @@ class SuperfreqGame {
             puzzleInfo: document.getElementById('puzzle-info'),
             effectDescription: document.getElementById('effect-description'),
             effectTitle: document.getElementById('effect-title'),
-            dryAudio: document.getElementById('dry-audio'),
-            effectedAudio: document.getElementById('effected-audio'),
+            playPause: document.getElementById('play-pause-button'),
+            bypass: document.getElementById('bypass-button'),
             parameterLabel: document.getElementById('parameter-label'),
             parameterSlider: document.getElementById('parameter-slider'),
             parameterValue: document.getElementById('parameter-value'),
@@ -88,18 +88,22 @@ class SuperfreqGame {
             this.submitGuess();
         });
 
-        // Audio controls - these will trigger audio initialization
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.addEventListener('click', async () => {
+        // Transport controls
+        if (this.elements.playPause) {
+            this.elements.playPause.addEventListener('click', async () => {
                 await this.initializeAudioIfNeeded();
-                this.playDrySample();
+                this.togglePlayPause();
+            });
+            // Sync UI on playback end
+            window.addEventListener('audio-playback-ended', () => {
+                this.setPlayButton(false);
             });
         }
 
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.addEventListener('click', async () => {
-                await this.initializeAudioIfNeeded();
-                this.playEffectedAudio();
+        if (this.elements.bypass) {
+            this.elements.bypass.addEventListener('click', () => {
+                const pressed = this.elements.bypass.getAttribute('aria-pressed') === 'true';
+                this.setBypass(!pressed);
             });
         }
 
@@ -206,16 +210,100 @@ class SuperfreqGame {
         const initialValue = this.puzzleSystem.sliderPositionToValue(this.currentPuzzle.effectType, 50);
         this.updateParameterDisplay(initialValue);
         
-        // Update audio button labels
-        if (this.elements.dryAudio) {
-            this.elements.dryAudio.textContent = '▶︎ Dry';
-        }
-        if (this.elements.effectedAudio) {
-            this.elements.effectedAudio.textContent = '▶︎ FX';
-        }
+        // Initialize transport labels
+        this.setPlayButton(false);
+        this.setBypass(false);
+
+        // Render fixed parameters bank
+        this.renderFixedParameters();
         
         // Enable submit button
         this.elements.submitGuess.disabled = false;
+    }
+
+    /**
+     * Toggle play/pause. Plays effected unless bypass is on, then plays dry.
+     */
+    async togglePlayPause() {
+        const isBypassed = this.elements.bypass && this.elements.bypass.getAttribute('aria-pressed') === 'true';
+        if (this.audioManager.isPlaying) {
+            this.audioManager.stopAllAudio();
+            this.setPlayButton(false);
+            return;
+        }
+        const success = isBypassed ? await this.audioManager.playDrySample() : await this.audioManager.playCurrentSettings();
+        if (success) this.setPlayButton(true);
+    }
+
+    setPlayButton(isPlaying) {
+        if (!this.elements.playPause) return;
+        this.elements.playPause.textContent = isPlaying ? '⏸︎ Pause' : '▶︎ Play';
+        this.elements.playPause.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+    }
+
+    setBypass(enabled) {
+        if (!this.elements.bypass) return;
+        this.elements.bypass.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        this.elements.bypass.textContent = enabled ? 'Bypass On' : 'Bypass Off';
+        // If currently playing, restart appropriate stream to reflect bypass state
+        if (this.audioManager.isPlaying) {
+            this.togglePlayPause(); // stop
+            this.togglePlayPause(); // start with new state
+        }
+    }
+
+    /**
+     * Render fixed parameter knobs (readonly) from presets
+     */
+    renderFixedParameters() {
+        const container = document.getElementById('fixed-parameters');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const effectType = this.currentPuzzle.effectType;
+        const presets = this.currentPuzzle.effectPresets?.[effectType] || {};
+
+        // Map for display names/units per effect
+        const displayMap = {
+            eq: { gain: { label: 'Gain', unit: 'dB' }, q: { label: 'Q', unit: '' } },
+            reverb: { roomSize: { label: 'Room', unit: '' } },
+            compression: { ratio: { label: 'Ratio', unit: ':' }, attack: { label: 'Attack', unit: 's' }, release: { label: 'Release', unit: 's' } },
+            delay: { feedback: { label: 'FB', unit: '' } },
+            phaser: { depth: { label: 'Depth', unit: '' }, feedback: { label: 'FB', unit: '' }, stages: { label: 'Stages', unit: '' } },
+            flanger: { depth: { label: 'Depth', unit: '' }, feedback: { label: 'FB', unit: '' } },
+            chorus: { depth: { label: 'Depth', unit: '' }, feedback: { label: 'FB', unit: '' } },
+            distortion: { curve: { label: 'Curve', unit: '' } },
+            filter: { type: { label: 'Type', unit: '' }, q: { label: 'Q', unit: '' } }
+        };
+
+        const displayDefs = displayMap[effectType] || {};
+
+        Object.entries(presets).forEach(([key, value]) => {
+            // Skip the main guessed parameter if present in presets
+            if (key === this.currentPuzzle.parameter) return;
+            const def = displayDefs[key] || { label: key, unit: '' };
+
+            const knobWrap = document.createElement('div');
+            knobWrap.className = 'fixed-knob';
+
+            const knobFace = document.createElement('div');
+            knobFace.className = 'knob knob-readonly';
+            // Set rotation based on value percent (mocked linear mapping)
+            knobFace.style.setProperty('--knob-rotation', '0deg');
+
+            const label = document.createElement('div');
+            label.className = 'knob-caption';
+            label.textContent = def.label;
+
+            const val = document.createElement('div');
+            val.className = 'knob-value';
+            val.textContent = String(value) + (def.unit || '');
+
+            knobWrap.appendChild(knobFace);
+            knobWrap.appendChild(label);
+            knobWrap.appendChild(val);
+            container.appendChild(knobWrap);
+        });
     }
 
     /**

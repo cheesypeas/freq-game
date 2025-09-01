@@ -150,7 +150,6 @@ class PuzzleSystem {
                 unit: effect.unit,
                 sampleType: sampleTypes[i % sampleTypes.length],
                 drySample: `${(window.APP_CONFIG && window.APP_CONFIG.CDN_BASE_URL) ? window.APP_CONFIG.CDN_BASE_URL.replace(/\/$/, '') + '/' : ''}audio/samples/${sampleTypes[i % sampleTypes.length]}_day${String(i + 1).padStart(3, '0')}.wav`,
-                livesAllocated: 5,
                 effectPresets: effectPresets
             };
         }
@@ -319,25 +318,7 @@ class PuzzleSystem {
         }
     }
 
-    /**
-     * Get recommended lives allocation for an effect type
-     */
-    getRecommendedLives(effectType) {
-        // Some effects are harder to distinguish, so allocate more lives
-        const difficultyMap = {
-            'eq': 4,        // Frequency changes are relatively easy to hear
-            'reverb': 6,    // Wet/dry mix can be subtle
-            'compression': 5, // Threshold changes can be hard to hear
-            'delay': 4,     // Timing is usually clear
-            'phaser': 5,    // Rate changes can be subtle
-            'flanger': 5,   // Rate changes can be subtle
-            'chorus': 5,    // Rate changes can be subtle
-            'distortion': 4, // Drive changes are usually obvious
-            'filter': 4     // Frequency changes are relatively easy to hear
-        };
-        
-        return difficultyMap[effectType] || 5;
-    }
+    // Lives recommendation removed
 
     /**
      * Get effect difficulty rating

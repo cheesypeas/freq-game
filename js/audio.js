@@ -10,7 +10,8 @@ class AudioManager {
         this.currentPuzzle = null;
         this.isLoading = false;
         this.volume = 0.7;
-        this.remainingLives = 5;
+        // Lives mechanic removed
+        this.remainingLives = Infinity;
         
         // Audio state
         this.isPlaying = false;
@@ -248,14 +249,9 @@ class AudioManager {
     }
 
     /**
-     * Audition a specific parameter value (costs 1 life)
+     * Audition a specific parameter value
      */
     async auditionParameter(parameterName, value) {
-        if (this.remainingLives <= 0) {
-            console.warn('No lives remaining for audition');
-            return false;
-        }
-
         if (!this.effectsEngine || !this.currentPuzzle) {
             console.warn('No puzzle loaded');
             return false;
@@ -272,9 +268,7 @@ class AudioManager {
             const success = await this.playEffectedAudio();
             
             if (success) {
-                // Deduct a life
-                this.remainingLives--;
-                console.log(`Parameter auditioned: ${parameterName} = ${value}. Lives remaining: ${this.remainingLives}`);
+                console.log(`Parameter auditioned: ${parameterName} = ${value}`);
 
                 try {
                     // Restore hidden correct value after playback ends
@@ -386,12 +380,7 @@ class AudioManager {
         return this.volume;
     }
 
-    /**
-     * Get remaining lives
-     */
-    getRemainingLives() {
-        return this.remainingLives;
-    }
+    // Lives getter removed
 
     /**
      * Check if audio is currently playing

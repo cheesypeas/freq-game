@@ -66,6 +66,52 @@ python -m http.server 8000
 npx serve .
 ```
 
+## Configuration
+
+By default, assets are loaded relatively from the `audio/` folder. You can set a CDN base:
+
+```html
+<script>
+  window.APP_CONFIG = {
+    CDN_BASE_URL: 'https://cdn.example.com/project'
+  };
+  // Optional overrides
+  // SAMPLES_MANIFEST_URL defaults to `${CDN_BASE_URL}/audio/samples/manifest.json`
+  // SAMPLES_FOLDER_URL defaults to `${CDN_BASE_URL}/audio/samples/`
+  // window.APP_CONFIG.SAMPLES_MANIFEST_URL = 'https://cdn.example.com/project/audio/samples/manifest.json';
+  // window.APP_CONFIG.SAMPLES_FOLDER_URL = 'https://cdn.example.com/project/audio/samples/';
+  // Add this before js/config.js is loaded
+  </script>
+```
+
+### Samples Manifest (recommended)
+
+Place a `manifest.json` file in your samples folder and list audio files. Filenames can be anything.
+
+Accepted formats:
+
+```json
+[
+  "kit1/kick.wav",
+  "kit1/snare.wav",
+  "vocals/take-a.mp3"
+]
+```
+
+or
+
+```json
+{
+  "files": [
+    "kit1/kick.wav",
+    "kit1/snare.wav",
+    "vocals/take-a.mp3"
+  ]
+}
+```
+
+The game deterministically picks a daily sample from the manifest without requiring dates in filenames. If the manifest is missing or empty, the game falls back to dev sample names and will synthesize test audio if files are unavailable.
+
 ## 🐛 GitHub Issues Management
 
 Manage GitHub issues directly from your local machine using the included script:

@@ -91,6 +91,13 @@ class PuzzleSystem {
 
         // Sample puzzle data for development
         this.samplePuzzles = this.generateSamplePuzzles();
+
+        // Manifest-driven samples (loaded asynchronously)
+        this.samples = [];
+        this.samplesReady = false;
+        this.samplesError = null;
+        this.puzzleCache = {};
+        this.samplesPromise = this.loadSamplesManifest();
     }
 
     /**
@@ -155,6 +162,112 @@ class PuzzleSystem {
         }
         
         return puzzles;
+    }
+
+    /**
+     * Load samples manifest from CDN or relative folder.
+     * Supports either an array of strings or an object with a `files` array.
+     */
+    async loadSamplesManifest() {
+        const manifestUrl = (window.APP_CONFIG && window.APP_CONFIG.SAMPLES_MANIFEST_URL) ? window.APP_CONFIG.SAMPLES_MANIFEST_URL : 'audio/samples/manifest.json';
+        try {
+            const response = await fetch(manifestUrl, { cache: 'no-cache' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const manifest = await response.json();
+            const normalized = this.normalizeManifest(manifest);
+            this.samples = normalized;
+            this.samplesReady = true;
+            return this.samples;
+        } catch (error) {
+            console.warn('Failed to load samples manifest, falling back:', error.message);
+            this.samples = [];
+            this.samplesReady = true;
+            this.samplesError = error;
+            return this.samples;
+        }
+    }
+
+    /**
+     * Normalize manifest content to an array of absolute URLs.
+     */
+    normalizeManifest(manifest) {
+        const folderBase = (window.APP_CONFIG && window.APP_CONFIG.SAMPLES_FOLDER_URL) ? window.APP_CONFIG.SAMPLES_FOLDER_URL : 'audio/samples/';
+        const toUrl = (entry) => this.resolveSampleUrl(folderBase, String(entry));
+
+        let entries = [];
+        if (Array.isArray(manifest)) {
+            entries = manifest;
+        } else if (manifest && Array.isArray(manifest.files)) {
+            entries = manifest.files;
+        } else {
+            console.warn('Unrecognized manifest format. Expected array or { files: [] }');
+            entries = [];
+        }
+
+        const audioExtensionRegex = /\.(wav|mp3|ogg|flac)(\?.*)?$/i;
+        const urls = entries
+            .map((e) => toUrl(e))
+            .filter((url) => audioExtensionRegex.test(url));
+
+        // De-duplicate while preserving order
+        const seen = new Set();
+        const uniqueUrls = [];
+        for (const url of urls) {
+            if (!seen.has(url)) {
+                seen.add(url);
+                uniqueUrls.push(url);
+            }
+        }
+        return uniqueUrls;
+    }
+
+    /**
+     * Resolve a manifest entry to an absolute URL.
+     */
+    resolveSampleUrl(baseFolderUrl, entry) {
+        if (!entry) return '';
+        const trimmed = entry.trim();
+        if (/^(https?:)?\/\//i.test(trimmed)) return trimmed; // Absolute URL
+        if (trimmed.startsWith('/')) {
+            // Absolute path on same origin - keep as-is
+            return trimmed;
+        }
+        const base = String(baseFolderUrl || 'audio/samples/').replace(/\/$/, '');
+        return `${base}/${trimmed}`;
+    }
+
+    /**
+     * Deterministic 32-bit FNV-1a hash of a string
+     */
+    deterministicHash(input) {
+        let hash = 0x811c9dc5;
+        for (let i = 0; i < input.length; i++) {
+            hash ^= input.charCodeAt(i);
+            hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+        }
+        // Convert to unsigned 32-bit
+        return hash >>> 0;
+    }
+
+    /**
+     * Deterministically select an index in [0, count) from a date and salt
+     */
+    chooseDailyIndex(count, date, salt) {
+        if (!count || count <= 0) return 0;
+        const dateKey = this.formatDate(date);
+        const seed = this.deterministicHash(`${dateKey}:${salt}`);
+        return seed % count;
+    }
+
+    /**
+     * Deterministically generate a floating number in [0, 1) from date+salt
+     */
+    randomUnitFromDate(date, salt) {
+        const idx = this.deterministicHash(`${this.formatDate(date)}::${salt}`);
+        // Map 32-bit int to [0,1)
+        return (idx & 0xffffffff) / 0x100000000;
     }
 
     /**
@@ -225,16 +338,84 @@ class PuzzleSystem {
     /**
      * Get puzzle for a specific date
      */
-    getPuzzleForDate(date) {
+    async getPuzzleForDate(date) {
         const dateKey = this.formatDate(date);
-        return this.samplePuzzles[dateKey] || null;
+        if (this.puzzleCache[dateKey]) return this.puzzleCache[dateKey];
+
+        // Ensure samples manifest is loaded
+        try {
+            if (!this.samplesReady) {
+                await this.samplesPromise;
+            }
+        } catch (_) {
+            // Ignore; we'll handle empty samples below
+        }
+
+        const effectTypes = Object.keys(this.effects);
+        const effectIndex = this.chooseDailyIndex(effectTypes.length, date, 'effect');
+        const effectType = effectTypes[effectIndex];
+        const effect = this.effects[effectType];
+
+        // Deterministic correct value generation
+        let correctValue;
+        const u = this.randomUnitFromDate(date, 'value');
+        if (effect.logarithmic) {
+            const logMin = Math.log(effect.minValue);
+            const logMax = Math.log(effect.maxValue);
+            const logValue = logMin + u * (logMax - logMin);
+            correctValue = Math.exp(logValue);
+            correctValue = Math.round(correctValue);
+        } else {
+            correctValue = effect.minValue + u * (effect.maxValue - effect.minValue);
+            if (effect.unit === '%' || effect.unit === 'ms') {
+                correctValue = Math.round(correctValue);
+            } else {
+                correctValue = Math.round(correctValue * 100) / 100;
+            }
+        }
+
+        const effectPresets = this.generateEffectPresets(effectType);
+
+        // Select a sample deterministically from the manifest list if available
+        let drySampleUrl = '';
+        if (Array.isArray(this.samples) && this.samples.length > 0) {
+            const sampleIndex = this.chooseDailyIndex(this.samples.length, date, 'sample');
+            drySampleUrl = this.samples[sampleIndex];
+        } else {
+            // Fallback: keep old dev filename pattern; AudioManager will synthesize if not found
+            const sampleTypes = ['strings', 'drums', 'vocals', 'guitar', 'synth', 'bass'];
+            const fallbackIndex = this.chooseDailyIndex(sampleTypes.length, date, 'fallback');
+            const sampleName = sampleTypes[fallbackIndex];
+            const base = (window.APP_CONFIG && window.APP_CONFIG.CDN_BASE_URL) ? window.APP_CONFIG.CDN_BASE_URL.replace(/\/$/, '') + '/' : '';
+            drySampleUrl = `${base}audio/samples/${sampleName}_day001.wav`;
+        }
+
+        const puzzle = {
+            date: dateKey,
+            effectType: effectType,
+            effectName: effect.name,
+            description: effect.description,
+            parameter: effect.parameter,
+            parameterName: effect.parameter,
+            correctValue: correctValue,
+            minValue: effect.minValue,
+            maxValue: effect.maxValue,
+            unit: effect.unit,
+            sampleType: 'audio',
+            drySample: drySampleUrl,
+            livesAllocated: this.getRecommendedLives(effectType),
+            effectPresets: effectPresets
+        };
+
+        this.puzzleCache[dateKey] = puzzle;
+        return puzzle;
     }
 
     /**
      * Get today's puzzle
      */
-    getTodaysPuzzle() {
-        return this.getPuzzleForDate(new Date());
+    async getTodaysPuzzle() {
+        return await this.getPuzzleForDate(new Date());
     }
 
     /**

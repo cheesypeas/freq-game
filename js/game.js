@@ -153,7 +153,7 @@ class SuperfreqGame {
             this.showLoading();
             
             // Get today's puzzle
-            this.currentPuzzle = this.puzzleSystem.getTodaysPuzzle();
+            this.currentPuzzle = await this.puzzleSystem.getTodaysPuzzle();
             
             if (!this.currentPuzzle) {
                 throw new Error('No puzzle found for today');

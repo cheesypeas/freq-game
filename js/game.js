@@ -453,11 +453,17 @@ class SuperfreqGame {
      * Save game data to local storage
      */
     saveGameData() {
+        const prev = this.loadGameData();
+        const prevCount = prev ? (prev.totalGames || 0) : 0;
+        const prevAvg = prev ? (prev.averageScore || 0) : 0;
+        const newCount = prevCount + 1;
+        const newAvg = Math.round(((prevAvg * prevCount) + this.score) / newCount);
+
         const gameData = {
             lastPlayed: new Date().toISOString(),
             streak: this.streak,
-            totalGames: this.getTotalGames() + 1,
-            averageScore: this.calculateAverageScore()
+            totalGames: newCount,
+            averageScore: newAvg
         };
         
         localStorage.setItem('superfreq-game-data', JSON.stringify(gameData));
@@ -488,17 +494,7 @@ class SuperfreqGame {
         return data ? data.totalGames : 0;
     }
 
-    /**
-     * Calculate average score
-     */
-    calculateAverageScore() {
-        const data = this.loadGameData();
-        if (!data || !data.averageScore) return 0;
-        
-        const currentTotal = data.averageScore * (data.totalGames - 1);
-        const newTotal = currentTotal + this.score;
-        return Math.round(newTotal / data.totalGames);
-    }
+    
 
     /**
      * Show loading state

@@ -126,7 +126,7 @@ class SuperfreqGame {
         this.initializingAudio = true;
 
         try {
-            console.log('Initializing audio context and loading puzzle audio...');
+            
             
             // Load puzzle audio with real-time effects
             await this.audioManager.loadPuzzleAudio(this.currentPuzzle);
@@ -134,7 +134,7 @@ class SuperfreqGame {
             
             
             this.audioInitialized = true;
-            console.log('Audio initialization completed successfully');
+            
             
         } catch (error) {
             console.error('Failed to initialize audio:', error);

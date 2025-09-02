@@ -54,7 +54,7 @@ class AudioEffectsEngine {
             throw new Error(`Unknown effect type: ${effectType}`);
         }
 
-        console.log(`Creating effect chain for ${effectType} with parameters:`, parameters);
+        
 
         // Clean up existing chain
         if (this.currentEffectChain) {
@@ -64,7 +64,6 @@ class AudioEffectsEngine {
         try {
             // Create new effect chain
             this.currentEffectChain = this.effects.get(effectType)(parameters);
-            console.log(`Effect chain created successfully:`, this.currentEffectChain);
             return this.currentEffectChain;
         } catch (error) {
             console.error(`Failed to create effect chain for ${effectType}:`, error);
@@ -95,11 +94,7 @@ class AudioEffectsEngine {
      * Play audio with current effect chain
      */
     playAudio() {
-        console.log('PlayAudio called:', {
-            hasDrySample: !!this.drySampleBuffer,
-            hasEffectChain: !!this.currentEffectChain,
-            isPlaying: this.isPlaying
-        });
+        
 
         if (!this.drySampleBuffer || !this.currentEffectChain) {
             console.warn('Cannot play audio: missing dry sample or effect chain');
@@ -114,17 +109,13 @@ class AudioEffectsEngine {
             const source = this.audioContext.createBufferSource();
             source.buffer = this.drySampleBuffer;
 
-            console.log('Audio source created:', {
-                bufferLength: this.drySampleBuffer.length,
-                sampleRate: this.drySampleBuffer.sampleRate,
-                numberOfChannels: this.drySampleBuffer.numberOfChannels
-            });
+            
 
             // Connect through effect chain
             source.connect(this.currentEffectChain.input);
             this.currentEffectChain.output.connect(this.audioContext.destination);
 
-            console.log('Audio nodes connected successfully');
+            
 
             // Start playback
             source.start(0);
@@ -135,13 +126,13 @@ class AudioEffectsEngine {
 
             // Set up end callback
             source.onended = () => {
-                console.log('Audio playback ended');
+                
                 this.isPlaying = false;
                 this.currentSource = null;
                 try { window.dispatchEvent(new CustomEvent('audio-playback-ended')); } catch (e) {}
             };
 
-            console.log('Audio playback started successfully');
+            
             return true;
         } catch (error) {
             console.error('Failed to play audio:', error);
@@ -213,24 +204,32 @@ class AudioEffectsEngine {
         const convolver = this.audioContext.createConvolver();
         convolver.buffer = impulse;
 
-        // Create wet/dry mix
+        // Create input and output nodes and wet/dry paths
+        const inputGain = this.audioContext.createGain();
         const dryGain = this.audioContext.createGain();
         const wetGain = this.audioContext.createGain();
-        
+        const outputGain = this.audioContext.createGain();
+
         dryGain.gain.setValueAtTime((100 - wetMix) / 100, this.audioContext.currentTime);
         wetGain.gain.setValueAtTime(wetMix / 100, this.audioContext.currentTime);
 
-        // Create merger for stereo
-        const merger = this.audioContext.createChannelMerger(2);
+        // Route: input -> dryGain -> output
+        inputGain.connect(dryGain);
+        dryGain.connect(outputGain);
+
+        // Route: input -> convolver -> wetGain -> output
+        inputGain.connect(convolver);
+        convolver.connect(wetGain);
+        wetGain.connect(outputGain);
 
         return {
-            input: this.audioContext.createChannelSplitter(2),
-            output: merger,
+            input: inputGain,
+            output: outputGain,
             params: {
                 wetMix: wetGain.gain,
                 roomSize: null // Would need to recreate convolver for room size changes
             },
-            nodes: { dryGain, wetGain, convolver, merger }
+            nodes: { inputGain, dryGain, wetGain, convolver, outputGain }
         };
     }
 

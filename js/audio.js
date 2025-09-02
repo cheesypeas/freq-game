@@ -36,7 +36,6 @@ class AudioManager {
                 if (!this.audioContext) {
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     this.effectsEngine = new AudioEffectsEngine(this.audioContext);
-                    console.log('Audio context and effects engine initialized');
                 }
                 return this.audioContext;
             };
@@ -101,7 +100,7 @@ class AudioManager {
             this.effectsEngine.createEffectChain(effectType, initialParams);
             
             this.isLoading = false;
-            console.log(`Puzzle audio loaded: ${effectType} effect`);
+            
             return true;
             
         } catch (error) {
@@ -158,7 +157,7 @@ class AudioManager {
             // Store the generated buffer in the effects engine
             this.effectsEngine.drySampleBuffer = buffer;
             
-            console.log('Pink noise test audio generated successfully');
+            
             return true;
             
         } catch (error) {
@@ -204,7 +203,7 @@ class AudioManager {
                 window.dispatchEvent(new CustomEvent('audio-playback-ended'));
             };
 
-            console.log('Playing dry sample');
+            
             return true;
 
         } catch (error) {
@@ -235,7 +234,6 @@ class AudioManager {
             const success = this.effectsEngine.playAudio();
             if (success) {
                 this.isPlaying = true;
-                console.log('Playing effected audio');
             }
             return success;
 
@@ -265,15 +263,16 @@ class AudioManager {
             const success = await this.playEffectedAudio();
             
             if (success) {
-                console.log(`Parameter auditioned: ${parameterName} = ${value}`);
-
-                try {
-                    // Restore hidden correct value after playback ends
-                    const correctValue = this.currentPuzzle.correctValue;
-                    this.effectsEngine.updateEffectParameters(effectType, { [mapped]: correctValue });
-                } catch (restoreError) {
-                    console.warn('Failed to restore hidden value after audition:', restoreError);
-                }
+                const restore = () => {
+                    try {
+                        if (!this.currentPuzzle) return;
+                        const correctValue = this.currentPuzzle.correctValue;
+                        this.effectsEngine.updateEffectParameters(effectType, { [mapped]: correctValue });
+                    } catch (restoreError) {
+                        console.warn('Failed to restore hidden value after audition:', restoreError);
+                    }
+                };
+                try { window.addEventListener('audio-playback-ended', restore, { once: true }); } catch (_) { restore(); }
                 return true;
             }
             
@@ -360,7 +359,7 @@ class AudioManager {
         if (this.audioContext && this.audioContext.state === 'suspended') {
             try {
                 await this.audioContext.resume();
-                console.log('Audio context resumed');
+                
                 return true;
             } catch (error) {
                 console.error('Failed to resume audio context:', error);
